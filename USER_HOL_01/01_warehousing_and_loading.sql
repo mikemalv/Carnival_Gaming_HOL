@@ -3,7 +3,7 @@
   Carnival Gaming HOL -- User 01
   
   In this section you will:
-  - Set up your database schemas (RAW_GAMING, HARMONIZED, ANALYTICS)
+  - Set up your database schemas (BRONZE, SILVER, GOLD)
   - Create raw tables for cruise ship gaming data
   - Load data from the shared stage
   - Explore the data with basic queries
@@ -15,12 +15,12 @@ USE WAREHOUSE HOL_USER_01_WH;
 USE DATABASE HOL_USER_01_DB;
 
 -- Step 2: Create schemas for the medallion architecture
-CREATE SCHEMA IF NOT EXISTS RAW_GAMING;
-CREATE SCHEMA IF NOT EXISTS HARMONIZED;
-CREATE SCHEMA IF NOT EXISTS ANALYTICS;
+CREATE SCHEMA IF NOT EXISTS BRONZE;
+CREATE SCHEMA IF NOT EXISTS SILVER;
+CREATE SCHEMA IF NOT EXISTS GOLD;
 
 -- Step 3: Create raw tables
-USE SCHEMA RAW_GAMING;
+USE SCHEMA BRONZE;
 
 CREATE OR REPLACE TABLE SHIPS (
     ship_id INT,

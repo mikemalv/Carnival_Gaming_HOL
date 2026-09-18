@@ -28,8 +28,8 @@ SELECT
               THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_positive_score,
     ROUND(AVG(CASE WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 
               THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_negative_score
-FROM RAW_GAMING.PLAYER_REVIEWS r
-JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
+FROM BRONZE.PLAYER_REVIEWS r
+JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
 GROUP BY s.ship_name, s.brand
 ORDER BY avg_sentiment DESC;
@@ -57,8 +57,8 @@ WITH classified_reviews AS (
             r.review_text,
             ['Dealer Quality', 'Game Variety', 'Atmosphere', 'Comps and Rewards', 'Wait Times']
         ):label::VARCHAR AS feedback_category
-    FROM RAW_GAMING.PLAYER_REVIEWS r
-    JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
+    FROM BRONZE.PLAYER_REVIEWS r
+    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     WHERE r.language = 'en'
       AND LENGTH(r.review_text) > 30
 )
@@ -81,8 +81,8 @@ SELECT
     r.rating,
     SNOWFLAKE.CORTEX.SUMMARIZE(r.review_text) AS review_summary,
     r.review_text AS original_review
-FROM RAW_GAMING.PLAYER_REVIEWS r
-JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
+FROM BRONZE.PLAYER_REVIEWS r
+JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
   AND LENGTH(r.review_text) > 100
 ORDER BY LENGTH(r.review_text) DESC
@@ -101,8 +101,8 @@ WITH ship_metrics AS (
         COUNT(DISTINCT r.review_id) AS review_count,
         ROUND(AVG(r.rating), 1) AS avg_rating,
         ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 2) AS avg_sentiment
-    FROM RAW_GAMING.PLAYER_REVIEWS r
-    JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
+    FROM BRONZE.PLAYER_REVIEWS r
+    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     WHERE r.language = 'en'
     GROUP BY s.brand, s.ship_name
 )
@@ -121,7 +121,7 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 -- Combine sentiment + classification into one reusable view
 -- ==========================================================================
 
-CREATE OR REPLACE VIEW ANALYTICS.ENRICHED_REVIEWS AS
+CREATE OR REPLACE VIEW GOLD.ENRICHED_REVIEWS AS
 SELECT
     r.review_id,
     r.player_id,
@@ -138,14 +138,14 @@ SELECT
         WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
         ELSE 'Neutral'
     END AS sentiment_category
-FROM RAW_GAMING.PLAYER_REVIEWS r
-JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
-JOIN RAW_GAMING.VOYAGES v ON r.voyage_id = v.voyage_id
+FROM BRONZE.PLAYER_REVIEWS r
+JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
+JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
 WHERE r.language = 'en';
 
 -- Verify the enriched view
 SELECT sentiment_category, COUNT(*) AS review_count,
        ROUND(AVG(rating), 1) AS avg_star_rating
-FROM ANALYTICS.ENRICHED_REVIEWS
+FROM GOLD.ENRICHED_REVIEWS
 GROUP BY sentiment_category
 ORDER BY review_count DESC;

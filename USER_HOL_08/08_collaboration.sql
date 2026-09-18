@@ -92,8 +92,8 @@ SELECT
     ROUND(AVG(vp.revenue_per_day), 2) AS avg_daily_revenue,
     ROUND(AVG(vp.revenue_per_passenger), 2) AS avg_rev_per_passenger,
     ROUND(AVG(vp.unique_players), 0) AS avg_players_per_voyage
-FROM ANALYTICS.VOYAGE_PERFORMANCE vp
-JOIN RAW_GAMING.SHIPS s ON vp.ship_name = s.ship_name
+FROM GOLD.VOYAGE_PERFORMANCE vp
+JOIN BRONZE.SHIPS s ON vp.ship_name = s.ship_name
 JOIN COLLABORATION.PORT_WEATHER pw 
     ON s.home_port = pw.port_name
     AND MONTH(vp.departure_date) = pw.month_num
@@ -115,7 +115,7 @@ SELECT
     vp.house_revenue,
     vp.revenue_per_day,
     vp.revenue_per_passenger
-FROM ANALYTICS.VOYAGE_PERFORMANCE vp
+FROM GOLD.VOYAGE_PERFORMANCE vp
 ORDER BY vp.revenue_per_day DESC;
 
 -- Correlation: more sea days = more revenue?
@@ -124,7 +124,7 @@ SELECT
         AS sea_day_revenue_correlation,
     ROUND(CORR(sea_days::FLOAT / (sea_days + port_days), unique_players), 3) 
         AS sea_day_player_correlation
-FROM ANALYTICS.VOYAGE_PERFORMANCE;
+FROM GOLD.VOYAGE_PERFORMANCE;
 
 /*
   KEY INSIGHT: Data Collaboration enables you to enrich your proprietary 

@@ -8,7 +8,7 @@ tables:
     description: Daily gaming revenue aggregated by ship and game type
     base_table:
       database: HOL_USER_07_DB
-      schema: ANALYTICS
+      schema: GOLD
       table: DAILY_SHIP_REVENUE
     dimensions:
       - name: gaming_date
@@ -68,7 +68,7 @@ tables:
     description: Gaming performance metrics aggregated by voyage
     base_table:
       database: HOL_USER_07_DB
-      schema: ANALYTICS
+      schema: GOLD
       table: VOYAGE_PERFORMANCE
     dimensions:
       - name: voyage_id
@@ -143,7 +143,7 @@ tables:
     description: Aggregated player gaming statistics and behavior
     base_table:
       database: HOL_USER_07_DB
-      schema: HARMONIZED
+      schema: SILVER
       table: PLAYER_SUMMARY_H
     dimensions:
       - name: player_id
@@ -212,7 +212,7 @@ verified_queries:
     question: What is total gaming revenue by brand?
     sql: >
       SELECT brand, SUM(house_revenue) AS total_revenue
-      FROM HOL_USER_07_DB.ANALYTICS.DAILY_SHIP_REVENUE
+      FROM HOL_USER_07_DB.GOLD.DAILY_SHIP_REVENUE
       GROUP BY brand
       ORDER BY total_revenue DESC
 
@@ -222,7 +222,7 @@ verified_queries:
       SELECT ship_name, brand, SUM(house_revenue) AS total_revenue,
              SUM(total_wagered) AS total_wagered,
              ROUND(AVG(house_edge_pct), 2) AS avg_house_edge
-      FROM HOL_USER_07_DB.ANALYTICS.DAILY_SHIP_REVENUE
+      FROM HOL_USER_07_DB.GOLD.DAILY_SHIP_REVENUE
       GROUP BY ship_name, brand
       ORDER BY total_revenue DESC
 
@@ -232,7 +232,7 @@ verified_queries:
       SELECT game_type, SUM(house_revenue) AS total_revenue,
              SUM(transaction_count) AS total_transactions,
              ROUND(AVG(house_edge_pct), 2) AS avg_house_edge
-      FROM HOL_USER_07_DB.ANALYTICS.DAILY_SHIP_REVENUE
+      FROM HOL_USER_07_DB.GOLD.DAILY_SHIP_REVENUE
       GROUP BY game_type
       ORDER BY total_revenue DESC
 
@@ -241,7 +241,7 @@ verified_queries:
     sql: >
       SELECT player_name, loyalty_tier, total_wagered, total_won,
              total_lost_to_house, total_bets, favorite_game_type
-      FROM HOL_USER_07_DB.HARMONIZED.PLAYER_SUMMARY_H
+      FROM HOL_USER_07_DB.SILVER.PLAYER_SUMMARY_H
       ORDER BY total_wagered DESC
       LIMIT 10
 
@@ -251,5 +251,5 @@ verified_queries:
       SELECT ship_name, brand, itinerary_name, departure_date,
              house_revenue, revenue_per_day, revenue_per_passenger,
              unique_players, sea_days, port_days
-      FROM HOL_USER_07_DB.ANALYTICS.VOYAGE_PERFORMANCE
+      FROM HOL_USER_07_DB.GOLD.VOYAGE_PERFORMANCE
       ORDER BY revenue_per_day DESC

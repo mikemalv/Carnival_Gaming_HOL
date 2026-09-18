@@ -16,7 +16,7 @@ USE DATABASE HOL_USER_04_DB;
 -- Step 1: Create a stage for the semantic model
 -- ==========================================================================
 
-CREATE STAGE IF NOT EXISTS ANALYTICS.SEMANTIC_MODELS
+CREATE STAGE IF NOT EXISTS GOLD.SEMANTIC_MODELS
   DIRECTORY = (ENABLE = TRUE)
   COMMENT = 'Stage for Cortex Analyst semantic model YAML files';
 
@@ -25,27 +25,27 @@ CREATE STAGE IF NOT EXISTS ANALYTICS.SEMANTIC_MODELS
 -- 
 -- IMPORTANT: You need to upload the semantic_model.yaml file to this stage.
 -- Option A (Snowsight UI): 
---   1. Navigate to Data > HOL_USER_04_DB > ANALYTICS > Stages
+--   1. Navigate to Data > HOL_USER_04_DB > GOLD > Stages
 --   2. Click on SEMANTIC_MODELS
 --   3. Click "+ Files" and upload semantic_model.yaml from your user folder
 --
 -- Option B (SnowSQL/CLI):
---   PUT file://./semantic_model.yaml @HOL_USER_04_DB.ANALYTICS.SEMANTIC_MODELS
+--   PUT file://./semantic_model.yaml @HOL_USER_04_DB.GOLD.SEMANTIC_MODELS
 --     AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 -- ==========================================================================
 
 -- Verify the file was uploaded
-LIST @ANALYTICS.SEMANTIC_MODELS;
+LIST @GOLD.SEMANTIC_MODELS;
 
 -- ==========================================================================
 -- Step 3: Create a Semantic View from the YAML
 -- ==========================================================================
 
-CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.GAMING_SEMANTIC_MODEL
-  FROM @ANALYTICS.SEMANTIC_MODELS/semantic_model.yaml;
+CREATE OR REPLACE SEMANTIC VIEW GOLD.GAMING_SEMANTIC_MODEL
+  FROM @GOLD.SEMANTIC_MODELS/semantic_model.yaml;
 
 -- Verify the semantic view
-DESCRIBE SEMANTIC VIEW ANALYTICS.GAMING_SEMANTIC_MODEL;
+DESCRIBE SEMANTIC VIEW GOLD.GAMING_SEMANTIC_MODEL;
 
 -- ==========================================================================
 -- Step 4: Set up CoWork (Snowflake Intelligence)
@@ -61,7 +61,7 @@ DESCRIBE SEMANTIC VIEW ANALYTICS.GAMING_SEMANTIC_MODEL;
 -- 3. Configure the analyst:
 --    - Name: "Casino Analytics - User 04"
 --    - Warehouse: HOL_USER_04_WH
---    - Add your semantic view: HOL_USER_04_DB.ANALYTICS.GAMING_SEMANTIC_MODEL
+--    - Add your semantic view: HOL_USER_04_DB.GOLD.GAMING_SEMANTIC_MODEL
 --
 -- 4. Click "Create"
 --
@@ -100,5 +100,5 @@ DESCRIBE SEMANTIC VIEW ANALYTICS.GAMING_SEMANTIC_MODEL;
 -- Test: Ask a question via SQL (returns the generated query)
 SELECT SNOWFLAKE.CORTEX.ANALYST(
     'What is total gaming revenue by brand?',
-    FROM_TABLE => 'HOL_USER_04_DB.ANALYTICS.GAMING_SEMANTIC_MODEL'
+    FROM_TABLE => 'HOL_USER_04_DB.GOLD.GAMING_SEMANTIC_MODEL'
 );

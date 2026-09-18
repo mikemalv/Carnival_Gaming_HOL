@@ -17,7 +17,7 @@ USE DATABASE HOL_USER_07_DB;
 -- This indexes your review text for semantic search
 -- ==========================================================================
 
-CREATE OR REPLACE CORTEX SEARCH SERVICE ANALYTICS.REVIEW_SEARCH
+CREATE OR REPLACE CORTEX SEARCH SERVICE GOLD.REVIEW_SEARCH
   ON review_text
   ATTRIBUTES ship_name, brand, rating, itinerary_name, sentiment_category
   WAREHOUSE = HOL_USER_07_WH
@@ -36,9 +36,9 @@ AS (
             WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
             ELSE 'Neutral'
         END AS sentiment_category
-    FROM RAW_GAMING.PLAYER_REVIEWS r
-    JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
-    JOIN RAW_GAMING.VOYAGES v ON r.voyage_id = v.voyage_id
+    FROM BRONZE.PLAYER_REVIEWS r
+    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
+    JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
     WHERE r.language = 'en'
 );
 
@@ -50,7 +50,7 @@ AS (
 -- Notice: this finds relevant reviews even if they do not contain the exact words
 SELECT PARSE_JSON(
     SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-        'HOL_USER_07_DB.ANALYTICS.REVIEW_SEARCH',
+        'HOL_USER_07_DB.GOLD.REVIEW_SEARCH',
         '{
             "query": "slot machines paying out well",
             "columns": ["review_text", "ship_name", "brand", "rating"],
@@ -62,7 +62,7 @@ SELECT PARSE_JSON(
 -- Search: Find complaints about dealers
 SELECT PARSE_JSON(
     SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-        'HOL_USER_07_DB.ANALYTICS.REVIEW_SEARCH',
+        'HOL_USER_07_DB.GOLD.REVIEW_SEARCH',
         '{
             "query": "rude or unfriendly dealer experience",
             "columns": ["review_text", "ship_name", "brand", "rating"],
@@ -74,7 +74,7 @@ SELECT PARSE_JSON(
 -- Search: Find reviews about poker tournaments
 SELECT PARSE_JSON(
     SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-        'HOL_USER_07_DB.ANALYTICS.REVIEW_SEARCH',
+        'HOL_USER_07_DB.GOLD.REVIEW_SEARCH',
         '{
             "query": "poker tournament experience on sea days",
             "columns": ["review_text", "ship_name", "brand", "rating"],
@@ -86,7 +86,7 @@ SELECT PARSE_JSON(
 -- Search with filter: Only Carnival ship reviews with positive sentiment
 SELECT PARSE_JSON(
     SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-        'HOL_USER_07_DB.ANALYTICS.REVIEW_SEARCH',
+        'HOL_USER_07_DB.GOLD.REVIEW_SEARCH',
         '{
             "query": "best casino experience",
             "columns": ["review_text", "ship_name", "rating", "sentiment_category"],

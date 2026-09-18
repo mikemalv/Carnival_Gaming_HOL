@@ -48,8 +48,8 @@ SELECT review_id,
        rating,
        s.ship_name,
        s.brand
-FROM RAW_GAMING.PLAYER_REVIEWS r
-JOIN RAW_GAMING.SHIPS s ON r.ship_id = s.ship_id
+FROM BRONZE.PLAYER_REVIEWS r
+JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
   AND LENGTH(r.review_text) > 100
 ORDER BY RANDOM()
@@ -63,6 +63,6 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE(
 ) AS summary,
 review_text,
 rating
-FROM RAW_GAMING.PLAYER_REVIEWS
+FROM BRONZE.PLAYER_REVIEWS
 WHERE language = 'en'
 LIMIT 3;

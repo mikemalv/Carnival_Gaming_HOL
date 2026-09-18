@@ -40,11 +40,11 @@ For each section below:
 **Open:** [01_warehousing_and_loading.sql](01_warehousing_and_loading.sql)
 
 **What you will learn:**
-- Create a medallion architecture (RAW / HARMONIZED / ANALYTICS schemas)
+- Create a medallion architecture (RAW / SILVER / GOLD schemas)
 - Load CSV data from a shared Snowflake stage into your own database
 - Explore gaming data with basic SQL queries
 
-**Business context:** Before we can analyze casino operations, we need to ingest the raw data from ship systems into Snowflake. The medallion architecture (raw -> harmonized -> analytics) keeps data organized as it moves from ingestion to business-ready.
+**Business context:** Before we can analyze casino operations, we need to ingest the raw data from ship systems into Snowflake. The medallion architecture (bronze -> silver -> gold) keeps data organized as it moves from ingestion to business-ready.
 
 **What to do:**
 1. Paste the file into a new Worksheet
@@ -64,7 +64,7 @@ For each section below:
 
 **What you will learn:**
 - Create Dynamic Tables that automatically transform data
-- Build a multi-layer pipeline: RAW -> HARMONIZED -> ANALYTICS
+- Build a multi-layer pipeline: RAW -> SILVER -> GOLD
 - Understand target lag and automatic refresh
 
 **Business context:** Casino operations teams need real-time dashboards. Dynamic Tables automatically keep downstream aggregations in sync when raw data changes -- no scheduling, no stored procedures, no manual refreshes.
@@ -79,10 +79,10 @@ For each section below:
 
 | Layer | Table | What it does |
 |-------|-------|--------------|
-| HARMONIZED | GAMING_TRANSACTIONS_H | Joins transactions with ship, game, player, and voyage details |
-| HARMONIZED | PLAYER_SUMMARY_H | Aggregates each player's total wagered, won, bet count, favorite game |
-| ANALYTICS | DAILY_SHIP_REVENUE | Daily revenue by ship and game type with house edge |
-| ANALYTICS | VOYAGE_PERFORMANCE | Per-voyage revenue, revenue per day, revenue per passenger |
+| SILVER | GAMING_TRANSACTIONS_H | Joins transactions with ship, game, player, and voyage details |
+| SILVER | PLAYER_SUMMARY_H | Aggregates each player's total wagered, won, bet count, favorite game |
+| GOLD | DAILY_SHIP_REVENUE | Daily revenue by ship and game type with house edge |
+| GOLD | VOYAGE_PERFORMANCE | Per-voyage revenue, revenue per day, revenue per passenger |
 
 ---
 
@@ -178,7 +178,7 @@ For each section below:
 1. Paste `06_cortex_analyst_cowork.sql` into a new Worksheet
 2. Run everything **up through the `CREATE STAGE` statement** (stop there)
 3. **Upload the semantic model file:**
-   - In Snowsight, navigate to: **Data > HOL_USER_02_DB > ANALYTICS > Stages > SEMANTIC_MODELS**
+   - In Snowsight, navigate to: **Data > HOL_USER_02_DB > GOLD > Stages > SEMANTIC_MODELS**
    - Click **"+ Files"** and upload the [semantic_model.yaml](semantic_model.yaml) file from this folder
 4. Go back to your Worksheet and run the remaining statements (`CREATE SEMANTIC VIEW` etc.)
 5. **Set up CoWork:**
@@ -186,7 +186,7 @@ For each section below:
    - Click **"+ New"** to create a new analyst
    - Name it: `Casino Analytics`
    - Warehouse: `HOL_USER_02_WH`
-   - Add your semantic view: `HOL_USER_02_DB.ANALYTICS.GAMING_SEMANTIC_MODEL`
+   - Add your semantic view: `HOL_USER_02_DB.GOLD.GAMING_SEMANTIC_MODEL`
    - Click **Create**
 6. **Start asking questions!**
 

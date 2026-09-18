@@ -17,7 +17,7 @@ USE DATABASE HOL_USER_05_DB;
 -- Step 1: Create Tags for Data Classification
 -- ==========================================================================
 
-USE SCHEMA RAW_GAMING;
+USE SCHEMA BRONZE;
 
 CREATE OR REPLACE TAG PII_TYPE
   ALLOWED_VALUES 'NAME', 'EMAIL', 'PHONE'
@@ -45,7 +45,7 @@ ALTER TABLE CASINO_GAMES SET TAG SENSITIVITY_LEVEL = 'PUBLIC';
 
 -- Verify tags are applied
 SELECT * FROM TABLE(
-    INFORMATION_SCHEMA.TAG_REFERENCES('HOL_USER_05_DB.RAW_GAMING.PLAYERS', 'TABLE')
+    INFORMATION_SCHEMA.TAG_REFERENCES('HOL_USER_05_DB.BRONZE.PLAYERS', 'TABLE')
 );
 
 -- ==========================================================================
@@ -98,13 +98,13 @@ LIMIT 5;
 -- ==========================================================================
 
 -- Create a mapping table that controls brand-level access
-CREATE OR REPLACE TABLE RAW_GAMING.BRAND_ACCESS_CONTROL (
+CREATE OR REPLACE TABLE BRONZE.BRAND_ACCESS_CONTROL (
     role_name VARCHAR,
     brand VARCHAR
 );
 
 -- Your role can see both brands
-INSERT INTO RAW_GAMING.BRAND_ACCESS_CONTROL VALUES
+INSERT INTO BRONZE.BRAND_ACCESS_CONTROL VALUES
     ('HOL_USER_05_ROLE', 'Carnival'),
     ('HOL_USER_05_ROLE', 'Holland America');
 
@@ -112,7 +112,7 @@ INSERT INTO RAW_GAMING.BRAND_ACCESS_CONTROL VALUES
 CREATE OR REPLACE ROW ACCESS POLICY BRAND_ROW_POLICY
 AS (brand_col VARCHAR) RETURNS BOOLEAN ->
     EXISTS (
-        SELECT 1 FROM RAW_GAMING.BRAND_ACCESS_CONTROL
+        SELECT 1 FROM BRONZE.BRAND_ACCESS_CONTROL
         WHERE role_name = CURRENT_ROLE()
           AND brand = brand_col
     );
@@ -128,13 +128,13 @@ SELECT ship_name, brand FROM SHIPS ORDER BY brand, ship_name;
 -- ==========================================================================
 
 -- See all tags in your database
-SHOW TAGS IN SCHEMA RAW_GAMING;
+SHOW TAGS IN SCHEMA BRONZE;
 
 -- See all masking policies
-SHOW MASKING POLICIES IN SCHEMA RAW_GAMING;
+SHOW MASKING POLICIES IN SCHEMA BRONZE;
 
 -- See all row access policies  
-SHOW ROW ACCESS POLICIES IN SCHEMA RAW_GAMING;
+SHOW ROW ACCESS POLICIES IN SCHEMA BRONZE;
 
 /*
   KEY INSIGHT: Snowflake governance controls are:
