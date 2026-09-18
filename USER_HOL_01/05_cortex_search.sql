@@ -32,8 +32,8 @@ AS (
         s.brand,
         v.itinerary_name,
         CASE
-            WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
-            WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
+            WHEN AI_SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
+            WHEN AI_SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
             ELSE 'Neutral'
         END AS sentiment_category
     FROM BRONZE.PLAYER_REVIEWS r

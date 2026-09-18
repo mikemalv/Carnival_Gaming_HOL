@@ -57,7 +57,7 @@ LIMIT 5;
 
 -- You can also try a quick AI_COMPLETE call to compare with the Playground
 -- This runs the same type of operation but via SQL
-SELECT SNOWFLAKE.CORTEX.COMPLETE(
+SELECT AI_COMPLETE(
     'llama3.1-8b',
     'Summarize this cruise casino review in 2 sentences: ' || review_text
 ) AS summary,

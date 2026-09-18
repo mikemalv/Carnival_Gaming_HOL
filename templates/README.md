@@ -112,9 +112,9 @@ For each section below:
 **Open:** [04_ai_sql_functions.sql](04_ai_sql_functions.sql)
 
 **What you will learn:**
-- Score review sentiment with `SENTIMENT()`
+- Score review sentiment with `AI_SENTIMENT()`
 - Classify reviews into business categories with `AI_CLASSIFY()`
-- Summarize long reviews with `SUMMARIZE()`
+- Summarize long reviews with `AI_SUMMARIZE()`
 - Generate an executive briefing with `AI_COMPLETE()`
 
 **Business context:** Casino managers receive thousands of player reviews. AI functions let you instantly process them all -- scoring sentiment, categorizing feedback, and generating summaries -- directly in SQL without external tools.
@@ -130,9 +130,9 @@ For each section below:
 
 | Function | What it does |
 |----------|-------------|
-| `SENTIMENT()` | Scores text from -1.0 (very negative) to +1.0 (very positive) |
+| `AI_SENTIMENT()` | Scores text from -1.0 (very negative) to +1.0 (very positive) |
 | `AI_CLASSIFY()` | Categorizes text into labels you define (e.g., "Dealer Quality", "Wait Times") |
-| `SUMMARIZE()` | Creates a concise summary of longer text |
+| `AI_SUMMARIZE()` | Creates a concise summary of longer text |
 | `AI_COMPLETE()` | Generates new text from a prompt (e.g., management briefings) |
 
 ---
