@@ -112,7 +112,7 @@ For each section below:
 **Open:** [04_ai_sql_functions.sql](04_ai_sql_functions.sql)
 
 **What you will learn:**
-- Score review sentiment with `AI_SENTIMENT()`
+- Score review sentiment with `SNOWFLAKE.CORTEX.SENTIMENT()`
 - Classify reviews into business categories with `AI_CLASSIFY()`
 - Summarize long reviews with `AI_SUMMARIZE()`
 - Generate an executive briefing with `AI_COMPLETE()`
@@ -130,7 +130,7 @@ For each section below:
 
 | Function | What it does |
 |----------|-------------|
-| `AI_SENTIMENT()` | Scores text from -1.0 (very negative) to +1.0 (very positive) |
+| `SNOWFLAKE.CORTEX.SENTIMENT()` | Scores text from -1.0 (very negative) to +1.0 (very positive) |
 | `AI_CLASSIFY()` | Categorizes text into labels you define (e.g., "Dealer Quality", "Wait Times") |
 | `AI_SUMMARIZE()` | Creates a concise summary of longer text |
 | `AI_COMPLETE()` | Generates new text from a prompt (e.g., management briefings) |

@@ -9,7 +9,7 @@ By the end of this lab, you will have:
 - **Loaded** raw gaming data (50K transactions, 1K player reviews, 12 ships) into Snowflake
 - **Built automated pipelines** with Dynamic Tables that refresh themselves
 - **Experimented with LLMs** in Cortex Playground to compare model outputs
-- **Analyzed player sentiment** at scale using AI SQL functions (AI_SENTIMENT, AI_CLASSIFY, AI_SUMMARIZE)
+- **Analyzed player sentiment** at scale using AI SQL functions (SNOWFLAKE.CORTEX.SENTIMENT, AI_CLASSIFY, AI_SUMMARIZE)
 - **Created a semantic search engine** over player casino reviews with Cortex Search
 - **Asked business questions in plain English** using Cortex Analyst and Snowflake CoWork
 - **Protected player PII** with dynamic masking and row access policies
@@ -22,7 +22,7 @@ By the end of this lab, you will have:
 | Warehousing & Loading | Virtual warehouses, databases, schemas, COPY INTO, stages |
 | Dynamic Tables | Declarative data pipelines with automatic refresh |
 | Cortex Playground | Side-by-side LLM model comparison |
-| AI SQL Functions | AI_SENTIMENT, AI_CLASSIFY, AI_SUMMARIZE, AI_COMPLETE |
+| AI SQL Functions | SNOWFLAKE.CORTEX.SENTIMENT, AI_CLASSIFY, AI_SUMMARIZE, AI_COMPLETE |
 | Cortex Search | Semantic (meaning-based) search over unstructured text |
 | Cortex Analyst + CoWork | Natural language BI via semantic models |
 | Governance | Object tags, dynamic data masking, row access policies |

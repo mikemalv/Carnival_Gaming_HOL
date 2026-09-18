@@ -23,11 +23,11 @@ SELECT
     s.ship_name,
     s.brand,
     COUNT(*) AS total_reviews,
-    ROUND(AVG(AI_SENTIMENT(r.review_text)), 3) AS avg_sentiment,
-    ROUND(AVG(CASE WHEN AI_SENTIMENT(r.review_text) >= 0.5 
-              THEN AI_SENTIMENT(r.review_text) END), 3) AS avg_positive_score,
-    ROUND(AVG(CASE WHEN AI_SENTIMENT(r.review_text) <= -0.5 
-              THEN AI_SENTIMENT(r.review_text) END), 3) AS avg_negative_score
+    ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 3) AS avg_sentiment,
+    ROUND(AVG(CASE WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 
+              THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_positive_score,
+    ROUND(AVG(CASE WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 
+              THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_negative_score
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
@@ -100,7 +100,7 @@ WITH ship_metrics AS (
         s.ship_name,
         COUNT(DISTINCT r.review_id) AS review_count,
         ROUND(AVG(r.rating), 1) AS avg_rating,
-        ROUND(AVG(AI_SENTIMENT(r.review_text)), 2) AS avg_sentiment
+        ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 2) AS avg_sentiment
     FROM BRONZE.PLAYER_REVIEWS r
     JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     WHERE r.language = 'en'
@@ -132,10 +132,10 @@ SELECT
     s.ship_name,
     s.brand,
     v.itinerary_name,
-    AI_SENTIMENT(r.review_text) AS sentiment_score,
+    SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) AS sentiment_score,
     CASE
-        WHEN AI_SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
-        WHEN AI_SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
+        WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
+        WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
         ELSE 'Neutral'
     END AS sentiment_category
 FROM BRONZE.PLAYER_REVIEWS r

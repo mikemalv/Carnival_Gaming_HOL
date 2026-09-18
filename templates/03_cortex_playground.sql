@@ -75,10 +75,10 @@ FROM (
 SELECT 
     review_text,
     rating,
-    ROUND(AI_SENTIMENT(review_text), 3) AS sentiment_score,
+    ROUND(SNOWFLAKE.CORTEX.SENTIMENT(review_text), 3) AS sentiment_score,
     CASE
-        WHEN AI_SENTIMENT(review_text) >= 0.5 THEN 'Positive'
-        WHEN AI_SENTIMENT(review_text) <= -0.5 THEN 'Negative'
+        WHEN SNOWFLAKE.CORTEX.SENTIMENT(review_text) >= 0.5 THEN 'Positive'
+        WHEN SNOWFLAKE.CORTEX.SENTIMENT(review_text) <= -0.5 THEN 'Negative'
         ELSE 'Neutral'
     END AS sentiment_label
 FROM BRONZE.PLAYER_REVIEWS
@@ -90,7 +90,7 @@ SELECT
     s.ship_name,
     s.brand,
     COUNT(*) AS review_count,
-    ROUND(AVG(AI_SENTIMENT(r.review_text)), 3) AS avg_sentiment,
+    ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 3) AS avg_sentiment,
     ROUND(AVG(r.rating), 1) AS avg_star_rating
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
@@ -167,9 +167,9 @@ LIMIT 5;
 -- Pull out the extracted values as columns
 SELECT 
     review_text,
-    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):game_mentioned::VARCHAR AS game_mentioned,
-    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):positive_aspect::VARCHAR AS positive_aspect,
-    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):negative_aspect::VARCHAR AS negative_aspect
+    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):response:game_mentioned::VARCHAR AS game_mentioned,
+    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):response:positive_aspect::VARCHAR AS positive_aspect,
+    AI_EXTRACT(review_text, ['game_mentioned', 'positive_aspect', 'negative_aspect']):response:negative_aspect::VARCHAR AS negative_aspect
 FROM BRONZE.PLAYER_REVIEWS
 WHERE language = 'en' AND LENGTH(review_text) > 80
 LIMIT 5;
@@ -208,7 +208,7 @@ SELECT review_text, rating, s.ship_name
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
-  AND AI_FILTER(r.review_text, 'Does this review mention winning money or hitting a jackpot?')
+  AND AI_FILTER(PROMPT('Does this review mention winning money or hitting a jackpot? Review: {0}', r.review_text))
 LIMIT 10;
 
 -- Find reviews that complain about smoke or ventilation
@@ -216,7 +216,7 @@ SELECT review_text, rating, s.ship_name
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
-  AND AI_FILTER(r.review_text, 'Does this review complain about smoke, smoking, or poor ventilation?')
+  AND AI_FILTER(PROMPT('Does this review complain about smoke, smoking, or poor ventilation? Review: {0}', r.review_text))
 LIMIT 10;
 
 -- Find reviews that discuss dealer behavior
@@ -224,7 +224,7 @@ SELECT review_text, rating, s.ship_name
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 WHERE r.language = 'en'
-  AND AI_FILTER(r.review_text, 'Does this review specifically comment on dealer behavior or attitude?')
+  AND AI_FILTER(PROMPT('Does this review specifically comment on dealer behavior or attitude? Review: {0}', r.review_text))
 LIMIT 10;
 
 -- ==========================================================================
