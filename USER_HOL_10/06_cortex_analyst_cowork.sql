@@ -24,17 +24,20 @@ CREATE OR REPLACE FILE FORMAT GOLD.YAML_FF
   TYPE = 'CSV' FIELD_DELIMITER = NONE RECORD_DELIMITER = NONE;
 
 -- ==========================================================================
--- Step 2: Upload the semantic model YAML to the stage
--- 
--- IMPORTANT: Upload the semantic_model.yaml file to this stage.
+-- Step 2: Copy the semantic model YAML from your workspace to the stage
 --
--- In Snowsight:
---   1. Navigate to Data > HOL_USER_10_DB > GOLD > Stages
---   2. Click on SEMANTIC_MODELS
---   3. Click "+ Files" and upload semantic_model.yaml from your workspace
+-- semantic_model.yaml already sits in your workspace next to this file,
+-- so there is nothing to upload by hand -- COPY FILES moves it for you.
+--
+-- If you edited the YAML, run ALTER WORKSPACE ... COMMIT first (or just
+-- re-run this COPY FILES, which always pulls the current 'live' version).
 -- ==========================================================================
 
--- Verify the file was uploaded
+COPY FILES INTO @GOLD.SEMANTIC_MODELS/
+FROM 'snow://workspace/HOL_WORKSPACES.PUBLIC.USER_HOL_10/versions/live/'
+FILES = ('semantic_model.yaml');
+
+-- Verify the file arrived
 LIST @GOLD.SEMANTIC_MODELS;
 
 -- ==========================================================================
@@ -72,42 +75,93 @@ SELECT * FROM SEMANTIC_VIEW(
 );
 
 -- ==========================================================================
--- Step 5: Set up CoWork (Snowflake Intelligence)
+-- Step 5: Create a Cortex Agent -- declaratively, in SQL
 --
--- INSTRUCTIONS (done in the Snowsight UI):
+-- This is the modern approach: instead of clicking through the UI, you
+-- define the agent as code. It gets TWO tools:
+--   - Casino_Metrics  -> Cortex Analyst over your semantic view (structured)
+--   - Review_Search   -> Cortex Search over player reviews   (unstructured)
+-- plus data_to_chart so it can visualize answers.
 --
--- 1. Navigate to: Snowflake Intelligence (CoWork)
---    - Click "AI & ML" in the left sidebar
---    - Select "Snowflake Intelligence" (or "CoWork")
+-- NOTE: Run Section 5 first -- this agent references GOLD.REVIEW_SEARCH.
+-- ==========================================================================
+
+CREATE OR REPLACE AGENT GOLD.CASINO_ANALYST
+  COMMENT = 'Casino gaming analytics agent for Carnival and Holland America ships'
+  PROFILE = '{"display_name": "Casino Analytics - User 10"}'
+  FROM SPECIFICATION
+$$
+models:
+  orchestration: auto
+
+instructions:
+  response: "You are a cruise line casino operations analyst. Be concise and always cite the ship or brand a number refers to. Format currency with a dollar sign."
+  orchestration: "Use Casino_Metrics for any question about revenue, wagers, players, or voyage performance. Use Review_Search for questions about what guests said, complaints, or opinions."
+  sample_questions:
+    - question: "What was total gaming revenue by ship?"
+    - question: "Compare Carnival vs Holland America gaming revenue"
+    - question: "What are guests complaining about in the casino?"
+
+tools:
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "Casino_Metrics"
+      description: "Query structured casino gaming metrics: revenue, amount wagered, house edge, player counts, voyage performance, and loyalty tiers for Carnival and Holland America ships. Use for any numeric or aggregate question. Do NOT use for guest opinions or review text."
+  - tool_spec:
+      type: "cortex_search"
+      name: "Review_Search"
+      description: "Semantic search over English-language player reviews of onboard casinos. Use to find what guests said about dealers, games, payouts, atmosphere, or pricing. Do NOT use for numeric aggregates."
+  - tool_spec:
+      type: "data_to_chart"
+      name: "data_to_chart"
+      description: "Generates charts and visualizations from query results."
+
+tool_resources:
+  Casino_Metrics:
+    semantic_view: "HOL_USER_10_DB.GOLD.GAMING_SEMANTIC_MODEL"
+  Review_Search:
+    search_service: "HOL_USER_10_DB.GOLD.REVIEW_SEARCH"
+    max_results: "8"
+    id_column: "review_id"
+$$;
+
+-- Confirm the agent was created
+SHOW AGENTS IN SCHEMA GOLD;
+
+DESCRIBE AGENT GOLD.CASINO_ANALYST;
+
+-- ==========================================================================
+-- Step 6: Chat with your agent in CoWork (Snowflake Intelligence)
 --
--- 2. Click "New" to create a new analyst
+-- 1. In Snowsight, click "AI & ML" > "Snowflake Intelligence" (CoWork)
+-- 2. Your agent "Casino Analytics - User 10" is already there --
+--    you created it in Step 5, so there is nothing to configure.
+-- 3. Select it and start asking questions.
 --
--- 3. Configure the analyst:
---    - Name: "Casino Analytics - User 10"
---    - Warehouse: HOL_USER_10_WH
---    - Add your semantic view: HOL_USER_10_DB.GOLD.GAMING_SEMANTIC_MODEL
---
--- 4. Click "Create"
---
--- 5. Try asking these questions in the chat:
+-- Because the agent has BOTH an Analyst tool and a Search tool, it can
+-- answer numeric questions AND questions about guest opinions, and it
+-- will pick the right tool automatically.
 -- ==========================================================================
 
 /*
   SAMPLE QUESTIONS TO ASK IN COWORK:
 
-  Revenue Analysis:
+  Structured -- routes to Casino_Metrics (Cortex Analyst):
   - "What was total gaming revenue by ship?"
   - "Which game type generates the most revenue?"
   - "Compare Carnival vs Holland America gaming revenue"
   - "What is the average house edge by game type?"
-  
-  Player Analysis:
   - "Show me the top 10 players by total amount wagered"
   - "How does revenue vary by player loyalty tier?"
-  - "What is the average bet size by game type?"
-  
-  Voyage Performance:
   - "Which voyages had the highest revenue per passenger?"
-  - "How does the number of sea days affect total gaming revenue?"
-  - "What itineraries generate the most casino revenue?"
+
+  Unstructured -- routes to Review_Search (Cortex Search):
+  - "What are guests complaining about in the casino?"
+  - "What do guests say about the dealers?"
+  - "Find reviews about slot machine payouts"
+  - "Are there complaints about smoke or ventilation?"
+
+  Combined -- the agent should use both tools:
+  - "Which ship has the lowest revenue, and what are guests saying about it?"
+  - "Chart revenue by brand and summarize guest sentiment for each"
 */

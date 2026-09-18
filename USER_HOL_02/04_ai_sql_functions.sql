@@ -3,9 +3,9 @@
   Carnival Gaming HOL -- User 02
   
   In this section you will:
-  - Analyze player review sentiment with SENTIMENT()
+  - Analyze player review sentiment with AI_SENTIMENT()
   - Classify reviews into business categories with AI_CLASSIFY()
-  - Summarize reviews with SUMMARIZE()
+  - Summarize reviews with AI_SUMMARIZE()
   - Generate a management briefing with AI_COMPLETE()
   - Create an enriched reviews view combining all AI outputs
 =============================================================================*/
@@ -19,27 +19,35 @@ USE DATABASE HOL_USER_02_DB;
 -- Business Question: "How do players feel about each ship's casino?"
 -- ==========================================================================
 
+WITH scored AS (
+    SELECT
+        r.ship_id,
+        AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_label
+    FROM BRONZE.PLAYER_REVIEWS r
+    WHERE r.language = 'en'
+)
 SELECT
     s.ship_name,
     s.brand,
     COUNT(*) AS total_reviews,
-    ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 3) AS avg_sentiment,
-    ROUND(AVG(CASE WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 
-              THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_positive_score,
-    ROUND(AVG(CASE WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 
-              THEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) END), 3) AS avg_negative_score
-FROM BRONZE.PLAYER_REVIEWS r
-JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
-WHERE r.language = 'en'
+    COUNT_IF(sc.sentiment_label = 'positive') AS positive_reviews,
+    COUNT_IF(sc.sentiment_label = 'negative') AS negative_reviews,
+    COUNT_IF(sc.sentiment_label = 'mixed')    AS mixed_reviews,
+    ROUND(100.0 * COUNT_IF(sc.sentiment_label = 'positive') / COUNT(*), 1) AS pct_positive,
+    ROUND(100.0 * COUNT_IF(sc.sentiment_label = 'negative') / COUNT(*), 1) AS pct_negative
+FROM scored sc
+JOIN BRONZE.SHIPS s ON sc.ship_id = s.ship_id
 GROUP BY s.ship_name, s.brand
-ORDER BY avg_sentiment DESC;
+ORDER BY pct_positive DESC;
 
 /*
-  KEY INSIGHT: Sentiment Score Ranges
-  - Positive: 0.5 to 1.0
-  - Neutral:  -0.5 to 0.5
-  - Negative: -1.0 to -0.5
-  
+  KEY INSIGHT: AI_SENTIMENT returns LABELS, not a number.
+  Possible values: positive | negative | neutral | mixed | unknown
+
+  Because it is categorical, you aggregate with COUNT_IF / percentages
+  instead of AVG(). 'mixed' is genuinely useful -- it flags reviews that
+  praised one thing and complained about another.
+
   Notice how we can instantly score hundreds of reviews with a single SQL query!
 */
 
@@ -56,7 +64,7 @@ WITH classified_reviews AS (
         AI_CLASSIFY(
             r.review_text,
             ['Dealer Quality', 'Game Variety', 'Atmosphere', 'Comps and Rewards', 'Wait Times']
-        ):label::VARCHAR AS feedback_category
+        ):labels[0]::VARCHAR AS feedback_category
     FROM BRONZE.PLAYER_REVIEWS r
     JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     WHERE r.language = 'en'
@@ -94,16 +102,24 @@ LIMIT 10;
 -- ==========================================================================
 
 -- First, gather the key metrics
-WITH ship_metrics AS (
+WITH scored AS (
+    SELECT
+        r.ship_id,
+        r.review_id,
+        r.rating,
+        AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_label
+    FROM BRONZE.PLAYER_REVIEWS r
+    WHERE r.language = 'en'
+),
+ship_metrics AS (
     SELECT
         s.brand,
         s.ship_name,
-        COUNT(DISTINCT r.review_id) AS review_count,
-        ROUND(AVG(r.rating), 1) AS avg_rating,
-        ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 2) AS avg_sentiment
-    FROM BRONZE.PLAYER_REVIEWS r
-    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
-    WHERE r.language = 'en'
+        COUNT(DISTINCT sc.review_id) AS review_count,
+        ROUND(AVG(sc.rating), 1) AS avg_rating,
+        ROUND(100.0 * COUNT_IF(sc.sentiment_label = 'positive') / COUNT(*), 0) AS pct_positive
+    FROM scored sc
+    JOIN BRONZE.SHIPS s ON sc.ship_id = s.ship_id
     GROUP BY s.brand, s.ship_name
 )
 SELECT AI_COMPLETE(
@@ -112,8 +128,8 @@ SELECT AI_COMPLETE(
     'write a brief 3-paragraph executive summary highlighting: (1) overall fleet performance, ' ||
     '(2) brand comparison between Carnival and Holland America, and (3) recommended actions. ' ||
     'Metrics: ' || 
-    (SELECT LISTAGG(ship_name || ': ' || avg_rating || ' stars, sentiment=' || avg_sentiment || 
-     ' (' || review_count || ' reviews)', '; ') FROM ship_metrics)
+    (SELECT LISTAGG(ship_name || ' (' || brand || '): ' || avg_rating || ' stars, ' || 
+     pct_positive || '% positive sentiment, ' || review_count || ' reviews', '; ') FROM ship_metrics)
 ) AS executive_briefing;
 
 -- ==========================================================================
@@ -132,12 +148,7 @@ SELECT
     s.ship_name,
     s.brand,
     v.itinerary_name,
-    SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) AS sentiment_score,
-    CASE
-        WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
-        WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
-        ELSE 'Neutral'
-    END AS sentiment_category
+    AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_category
 FROM BRONZE.PLAYER_REVIEWS r
 JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id

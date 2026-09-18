@@ -86,24 +86,41 @@ For each section below:
 
 ---
 
-## Section 3: Exploring LLMs with Cortex Playground
+## Section 3: Cortex AI Functions Sampler + Playground
 
 **Open:** [03_cortex_playground.sql](03_cortex_playground.sql)
 
 **What you will learn:**
-- Navigate to Cortex Playground in Snowsight
-- Compare LLM models side-by-side
-- Evaluate which model gives the best review summaries
+- Run every major Cortex `AI_*` function against your own gaming data
+- Understand what each one returns, and how to pull values out of it
+- Compare LLM models side-by-side in Cortex Playground
 
-**Business context:** Before deploying AI at scale, you want to experiment with different models to find the best fit. The Playground lets you test prompts interactively without writing SQL.
+**Business context:** Before deploying AI at scale, you want to know which function fits which job -- and experiment with prompts and models interactively.
 
 **What to do:**
-1. Run the SQL file to get 5 sample player reviews
-2. In Snowsight, navigate to **AI & ML > Cortex Playground** (left sidebar)
+1. Run the file top to bottom. Each numbered block is one function, and the
+   comments explain when to use it.
+2. Then open **AI & ML > Cortex Playground** in Snowsight
 3. Select two models to compare (e.g., `llama3.1-8b` and `mistral-large2`)
 4. Copy a review from your query results and paste it into the Playground
 5. Ask the model to summarize it -- compare the two outputs
 6. Try changing the system prompt to: *"You are a cruise ship casino operations analyst. Provide concise, actionable summaries of customer feedback."*
+
+**Functions covered, and the gotcha for each:**
+
+| Function | Returns | How to read it |
+|----------|---------|----------------|
+| `AI_COMPLETE(model, prompt)` | Text | Use directly |
+| `AI_SENTIMENT(text [, categories])` | OBJECT | `:categories[0]:sentiment::VARCHAR` for overall; pass up to 10 categories for aspect-level sentiment |
+| `AI_CLASSIFY(text, labels)` | OBJECT | `:labels[0]::VARCHAR` (note: `labels`, plural, and it is an array) |
+| `AI_SUMMARIZE(text)` | Text | Use directly -- no model argument |
+| `AI_EXTRACT(text, fields)` | OBJECT | `:response:<field_name>::VARCHAR` |
+| `AI_TRANSLATE(text, from, to)` | Text | Use directly |
+| `AI_FILTER(PROMPT('... {0}', col))` | BOOLEAN | Must wrap the question in `PROMPT()` -- the plain two-argument form is for images only |
+
+> **Note on sentiment:** `AI_SENTIMENT` returns **labels**, not a -1 to +1 score.
+> Values are `positive`, `negative`, `neutral`, `mixed`, and `unknown`. Aggregate
+> it with `COUNT_IF` and percentages rather than `AVG()`.
 
 ---
 
@@ -112,7 +129,7 @@ For each section below:
 **Open:** [04_ai_sql_functions.sql](04_ai_sql_functions.sql)
 
 **What you will learn:**
-- Score review sentiment with `SNOWFLAKE.CORTEX.SENTIMENT()`
+- Score review sentiment with `AI_SENTIMENT()`
 - Classify reviews into business categories with `AI_CLASSIFY()`
 - Summarize long reviews with `AI_SUMMARIZE()`
 - Generate an executive briefing with `AI_COMPLETE()`
@@ -130,7 +147,7 @@ For each section below:
 
 | Function | What it does |
 |----------|-------------|
-| `SNOWFLAKE.CORTEX.SENTIMENT()` | Scores text from -1.0 (very negative) to +1.0 (very positive) |
+| `AI_SENTIMENT()` | Returns overall **and** aspect-level sentiment labels (`positive`, `negative`, `neutral`, `mixed`, `unknown`) |
 | `AI_CLASSIFY()` | Categorizes text into labels you define (e.g., "Dealer Quality", "Wait Times") |
 | `AI_SUMMARIZE()` | Creates a concise summary of longer text |
 | `AI_COMPLETE()` | Generates new text from a prompt (e.g., management briefings) |
@@ -167,37 +184,51 @@ For each section below:
 **Open:** [06_cortex_analyst_cowork.sql](06_cortex_analyst_cowork.sql) and [semantic_model.yaml](semantic_model.yaml)
 
 **What you will learn:**
-- Upload a semantic model that describes your gaming data
-- Create a Cortex Analyst agent in Snowflake CoWork (Intelligence)
-- Ask natural language questions about casino performance -- no SQL needed
+- Create a semantic view from a YAML model that describes your gaming data
+- Create a Cortex Agent **declaratively in SQL** (`CREATE AGENT`) with two tools
+- Ask natural language questions in Snowflake CoWork -- no SQL needed
 
 **Business context:** Executives and managers should not need to write SQL. Cortex Analyst translates plain-English questions into SQL queries against your semantic model. CoWork provides the chat interface.
 
 **What to do:**
 
-1. Paste `06_cortex_analyst_cowork.sql` into a new Worksheet
-2. Run everything **up through the `CREATE STAGE` statement** (stop there)
-3. **Upload the semantic model file:**
-   - In Snowsight, navigate to: **Data > HOL_USER_08_DB > GOLD > Stages > SEMANTIC_MODELS**
-   - Click **"+ Files"** and upload the [semantic_model.yaml](semantic_model.yaml) file from this folder
-4. Go back to your Worksheet and run the remaining statements (`CREATE SEMANTIC VIEW` etc.)
-5. **Set up CoWork:**
-   - Navigate to **AI & ML > Snowflake Intelligence** (left sidebar)
-   - Click **"+ New"** to create a new analyst
-   - Name it: `Casino Analytics`
-   - Warehouse: `HOL_USER_08_WH`
-   - Add your semantic view: `HOL_USER_08_DB.GOLD.GAMING_SEMANTIC_MODEL`
-   - Click **Create**
-6. **Start asking questions!**
+1. Make sure you have finished **Section 5** -- the agent uses your Cortex Search service
+2. Paste `06_cortex_analyst_cowork.sql` into a new Worksheet
+3. Run it top to bottom. There is **nothing to upload by hand** -- the script:
+   - creates a stage and file format
+   - uses `COPY FILES` to pull `semantic_model.yaml` straight from your workspace
+   - builds the semantic view with `SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML`
+   - creates your agent with `CREATE AGENT ... FROM SPECIFICATION`
+4. **Chat with it:** go to **AI & ML > Snowflake Intelligence** (CoWork) in the
+   left sidebar. Your agent **"Casino Analytics - User 08"** is already
+   there -- you created it in SQL, so there is nothing to configure.
+5. **Start asking questions!**
+
+**Your agent has three tools, and picks between them automatically:**
+
+| Tool | Type | Used for |
+|------|------|----------|
+| `Casino_Metrics` | Cortex Analyst | Numbers: revenue, wagers, house edge, players |
+| `Review_Search` | Cortex Search | Opinions: what guests said, complaints |
+| `data_to_chart` | Charting | Turning results into visualizations |
 
 **Sample questions to try in CoWork:**
+
+Numbers (routes to `Casino_Metrics`):
 - "What was total gaming revenue by ship?"
 - "Which game type generates the highest house edge?"
 - "Compare Carnival vs Holland America gaming revenue"
 - "Show me the top 10 players by total wagered"
-- "Which itineraries have the best casino performance?"
 - "How does revenue vary by player loyalty tier?"
-- "What is the average bet size by game type?"
+
+Opinions (routes to `Review_Search`):
+- "What are guests complaining about in the casino?"
+- "What do guests say about the dealers?"
+- "Are there complaints about smoke or ventilation?"
+
+Both tools at once:
+- "Which ship has the lowest revenue, and what are guests saying about it?"
+- "Chart revenue by brand and summarize guest sentiment for each"
 
 ---
 

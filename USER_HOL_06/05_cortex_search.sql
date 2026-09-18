@@ -31,11 +31,7 @@ AS (
         s.ship_name,
         s.brand,
         v.itinerary_name,
-        CASE
-            WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) >= 0.5 THEN 'Positive'
-            WHEN SNOWFLAKE.CORTEX.SENTIMENT(r.review_text) <= -0.5 THEN 'Negative'
-            ELSE 'Neutral'
-        END AS sentiment_category
+        AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_category
     FROM BRONZE.PLAYER_REVIEWS r
     JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
@@ -91,6 +87,21 @@ SELECT PARSE_JSON(
             "query": "best casino experience",
             "columns": ["review_text", "ship_name", "rating", "sentiment_category"],
             "filter": {"@eq": {"brand": "Carnival"}},
+            "limit": 5
+        }'
+    )
+) AS results;
+
+-- Search with a sentiment filter: negative reviews about payouts.
+-- sentiment_category comes from AI_SENTIMENT, so valid values are
+-- lowercase: positive | negative | neutral | mixed | unknown
+SELECT PARSE_JSON(
+    SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+        'HOL_USER_06_DB.GOLD.REVIEW_SEARCH',
+        '{
+            "query": "payouts and odds",
+            "columns": ["review_text", "ship_name", "rating", "sentiment_category"],
+            "filter": {"@eq": {"sentiment_category": "negative"}},
             "limit": 5
         }'
     )

@@ -8,7 +8,7 @@
   
   Functions covered:
   - AI_COMPLETE       (text generation / summarization)
-  - AI_SENTIMENT      (sentiment scoring)
+  - AI_SENTIMENT      (overall + aspect-level sentiment)
   - AI_CLASSIFY       (categorization)
   - AI_SUMMARIZE      (one-call summarization)
   - AI_EXTRACT        (structured field extraction)
@@ -66,37 +66,73 @@ FROM (
 );
 
 -- ==========================================================================
--- 2. AI_SENTIMENT  --  Sentiment scoring (-1 to +1)
---    Returns a float: -1.0 = very negative, 0 = neutral, +1.0 = very positive
+-- 2. AI_SENTIMENT  --  Overall AND aspect-level sentiment
+--    Returns an OBJECT, not a number:
+--      {"categories":[{"name":"overall","sentiment":"positive"}]}
+--    sentiment is one of: positive | negative | neutral | mixed | unknown
 --    Use for: satisfaction tracking, alerting on negative trends
 -- ==========================================================================
 
--- Score individual reviews
+-- 2a. Overall sentiment label for individual reviews.
+--     The 'overall' category is always element [0].
 SELECT 
     review_text,
     rating,
-    ROUND(SNOWFLAKE.CORTEX.SENTIMENT(review_text), 3) AS sentiment_score,
-    CASE
-        WHEN SNOWFLAKE.CORTEX.SENTIMENT(review_text) >= 0.5 THEN 'Positive'
-        WHEN SNOWFLAKE.CORTEX.SENTIMENT(review_text) <= -0.5 THEN 'Negative'
-        ELSE 'Neutral'
-    END AS sentiment_label
+    AI_SENTIMENT(review_text):categories[0]:sentiment::VARCHAR AS sentiment_label
 FROM BRONZE.PLAYER_REVIEWS
 WHERE language = 'en'
 LIMIT 10;
 
--- Average sentiment by ship
+-- 2b. Sentiment mix by ship. Because AI_SENTIMENT returns labels (not a float),
+--     we count each label instead of averaging a score.
 SELECT 
     s.ship_name,
     s.brand,
     COUNT(*) AS review_count,
-    ROUND(AVG(SNOWFLAKE.CORTEX.SENTIMENT(r.review_text)), 3) AS avg_sentiment,
-    ROUND(AVG(r.rating), 1) AS avg_star_rating
-FROM BRONZE.PLAYER_REVIEWS r
-JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
-WHERE r.language = 'en'
+    COUNT_IF(sentiment_label = 'positive') AS positive_reviews,
+    COUNT_IF(sentiment_label = 'neutral')  AS neutral_reviews,
+    COUNT_IF(sentiment_label = 'mixed')    AS mixed_reviews,
+    COUNT_IF(sentiment_label = 'negative') AS negative_reviews,
+    ROUND(100.0 * COUNT_IF(sentiment_label = 'positive') / COUNT(*), 1) AS pct_positive,
+    ROUND(AVG(s2.rating), 1) AS avg_star_rating
+FROM (
+    SELECT 
+        r.ship_id,
+        r.rating,
+        AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_label
+    FROM BRONZE.PLAYER_REVIEWS r
+    WHERE r.language = 'en'
+) s2
+JOIN BRONZE.SHIPS s ON s2.ship_id = s.ship_id
 GROUP BY s.ship_name, s.brand
-ORDER BY avg_sentiment DESC;
+ORDER BY pct_positive DESC;
+
+-- 2c. ASPECT-LEVEL sentiment -- the real power of AI_SENTIMENT.
+--     Pass up to 10 categories and get a sentiment for each one,
+--     so you learn WHAT guests liked or disliked, not just whether.
+WITH scored AS (
+    SELECT 
+        r.review_id,
+        s.ship_name,
+        AI_SENTIMENT(
+            r.review_text,
+            ['dealer service', 'game variety', 'atmosphere', 'value for money']
+        ) AS sentiment
+    FROM BRONZE.PLAYER_REVIEWS r
+    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
+    WHERE r.language = 'en'
+    LIMIT 50
+)
+SELECT 
+    c.value:name::VARCHAR AS aspect,
+    COUNT_IF(c.value:sentiment::VARCHAR = 'positive') AS positive,
+    COUNT_IF(c.value:sentiment::VARCHAR = 'negative') AS negative,
+    COUNT_IF(c.value:sentiment::VARCHAR = 'neutral')  AS neutral,
+    COUNT_IF(c.value:sentiment::VARCHAR = 'unknown')  AS not_mentioned
+FROM scored, LATERAL FLATTEN(input => scored.sentiment:categories) c
+WHERE c.value:name::VARCHAR <> 'overall'
+GROUP BY aspect
+ORDER BY negative DESC;
 
 -- ==========================================================================
 -- 3. AI_CLASSIFY  --  Categorize text into labels you define
@@ -110,7 +146,7 @@ SELECT
     AI_CLASSIFY(
         review_text,
         ['Dealer Quality', 'Game Variety', 'Atmosphere', 'Comps and Rewards', 'Wait Times', 'Pricing']
-    ):label::VARCHAR AS category,
+    ):labels[0]::VARCHAR AS category,
     rating
 FROM BRONZE.PLAYER_REVIEWS
 WHERE language = 'en' AND LENGTH(review_text) > 30
@@ -123,7 +159,7 @@ WITH classified AS (
         AI_CLASSIFY(
             r.review_text,
             ['Dealer Quality', 'Game Variety', 'Atmosphere', 'Comps and Rewards', 'Wait Times', 'Pricing']
-        ):label::VARCHAR AS category
+        ):labels[0]::VARCHAR AS category
     FROM BRONZE.PLAYER_REVIEWS r
     JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
     WHERE r.language = 'en' AND LENGTH(r.review_text) > 30

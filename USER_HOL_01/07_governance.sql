@@ -117,7 +117,11 @@ AS (brand_col VARCHAR) RETURNS BOOLEAN ->
           AND brand = brand_col
     );
 
--- Apply to the SHIPS table
+-- Apply to the SHIPS table.
+-- NOTE: unlike CREATE OR REPLACE, ADD ROW ACCESS POLICY is not idempotent.
+-- If you re-run this file you will get "row access policy already exists" --
+-- that is harmless. To reset it first, run:
+--   ALTER TABLE SHIPS DROP ROW ACCESS POLICY BRAND_ROW_POLICY;
 ALTER TABLE SHIPS ADD ROW ACCESS POLICY BRAND_ROW_POLICY ON (brand);
 
 -- Verify: you should see all 12 ships (both brands)
