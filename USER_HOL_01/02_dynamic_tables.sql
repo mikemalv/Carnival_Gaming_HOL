@@ -4,7 +4,7 @@
   
   In this section you will:
   - Create Dynamic Tables that automatically transform raw gaming data
-  - Build a multi-layer pipeline: RAW -> SILVER -> GOLD
+  - Build a multi-layer pipeline: BRONZE -> SILVER -> GOLD
   - Observe how downstream tables refresh when upstream data changes
 =============================================================================*/
 

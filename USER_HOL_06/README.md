@@ -40,7 +40,7 @@ For each section below:
 **Open:** [01_warehousing_and_loading.sql](01_warehousing_and_loading.sql)
 
 **What you will learn:**
-- Create a medallion architecture (RAW / SILVER / GOLD schemas)
+- Create a medallion architecture (BRONZE / SILVER / GOLD schemas)
 - Load CSV data from a shared Snowflake stage into your own database
 - Explore gaming data with basic SQL queries
 
@@ -64,7 +64,7 @@ For each section below:
 
 **What you will learn:**
 - Create Dynamic Tables that automatically transform data
-- Build a multi-layer pipeline: RAW -> SILVER -> GOLD
+- Build a multi-layer pipeline: BRONZE -> SILVER -> GOLD
 - Understand target lag and automatic refresh
 
 **Business context:** Casino operations teams need real-time dashboards. Dynamic Tables automatically keep downstream aggregations in sync when raw data changes -- no scheduling, no stored procedures, no manual refreshes.

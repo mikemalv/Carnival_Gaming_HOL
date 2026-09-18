@@ -34,7 +34,7 @@ for i in $(seq -w 1 10); do
         [ -f "$f" ] || continue
         fname=$(basename "$f")
         echo "  $fname"
-        cortex ws cp "$f" "${WS_FQN}:/${fname}" -c "$CONNECTION" 2>&1
+        cortex ws cp "$f" "${WS_FQN}:/" -c "$CONNECTION" 2>&1
     done
     
     # Publish the workspace so users can see the files
