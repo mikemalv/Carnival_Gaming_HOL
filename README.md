@@ -16,7 +16,7 @@ Your instructor will provide:
 | Account URL | `https://SFSENORTHAMERICA-HOL_CARNIVAL.snowflakecomputing.com` |
 | Username | `HOL_USER_01` |
 | Password | *(provided in session)* |
-| Your folder | `user_01/` |
+| Your folder | `USER_HOL_01/` |
 
 ## Lab Architecture
 
@@ -49,17 +49,17 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 ## How to Use This Lab
 
 1. **Log in** to Snowsight with your assigned credentials
-2. **Open your folder** in this repo (e.g., `user_01/`)
+2. **Navigate to your folder** in this repo (e.g., `USER_HOL_01/`) -- each folder has its own README with the full walkthrough
 3. **Run each SQL file** in order by opening a new Snowsight Worksheet and pasting the contents
 4. Follow the instructions and comments in each file
 
-> **Tip:** Each SQL file starts with `USE ROLE`, `USE WAREHOUSE`, and `USE DATABASE` so your context is always set correctly. Just run the file top to bottom.
+> **Tip:** Each folder has a `README.md` with a table of all files and step-by-step instructions. Each SQL file starts with `USE ROLE`, `USE WAREHOUSE`, and `USE DATABASE` so your context is always set correctly.
 
 ---
 
 ## Section 1: Warehousing and Data Loading
 
-**File:** `user_XX/01_warehousing_and_loading.sql`
+**File:** `USER_HOL_XX/01_warehousing_and_loading.sql`
 
 **What you will learn:**
 - Create a medallion architecture (RAW / HARMONIZED / ANALYTICS schemas)
@@ -83,7 +83,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 2: Automated Pipelines with Dynamic Tables
 
-**File:** `user_XX/02_dynamic_tables.sql`
+**File:** `USER_HOL_XX/02_dynamic_tables.sql`
 
 **What you will learn:**
 - Create Dynamic Tables that automatically transform data
@@ -111,7 +111,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 3: Exploring LLMs with Cortex Playground
 
-**File:** `user_XX/03_cortex_playground.sql`
+**File:** `USER_HOL_XX/03_cortex_playground.sql`
 
 **What you will learn:**
 - Navigate to Cortex Playground in Snowsight
@@ -131,7 +131,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 4: AI-Powered Analytics with SQL Functions
 
-**File:** `user_XX/04_ai_sql_functions.sql`
+**File:** `USER_HOL_XX/04_ai_sql_functions.sql`
 
 **What you will learn:**
 - Score review sentiment with `SENTIMENT()`
@@ -161,7 +161,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 5: Semantic Search with Cortex Search
 
-**File:** `user_XX/05_cortex_search.sql`
+**File:** `USER_HOL_XX/05_cortex_search.sql`
 
 **What you will learn:**
 - Create a Cortex Search Service over player reviews
@@ -185,7 +185,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 6: Conversational BI with Cortex Analyst and CoWork
 
-**File:** `user_XX/06_cortex_analyst_cowork.sql` + `user_XX/semantic_model.yaml`
+**File:** `USER_HOL_XX/06_cortex_analyst_cowork.sql` + `USER_HOL_XX/semantic_model.yaml`
 
 **What you will learn:**
 - Upload a semantic model that describes your gaming data
@@ -216,7 +216,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 7: Data Governance
 
-**File:** `user_XX/07_governance.sql`
+**File:** `USER_HOL_XX/07_governance.sql`
 
 **What you will learn:**
 - Tag PII columns (names, email, phone) with object tags
@@ -248,7 +248,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Section 8: Data Collaboration via Marketplace
 
-**File:** `user_XX/08_collaboration.sql`
+**File:** `USER_HOL_XX/08_collaboration.sql`
 
 **What you will learn:**
 - Enrich gaming data with external weather/port data
@@ -267,7 +267,7 @@ You will work with casino gaming data from 12 cruise ships across two brands:
 
 ## Cleanup (Optional)
 
-**File:** `user_XX/09_cleanup.sql`
+**File:** `USER_HOL_XX/09_cleanup.sql`
 
 Run this file **only when instructed** to clean up all objects and suspend your warehouse.
 
