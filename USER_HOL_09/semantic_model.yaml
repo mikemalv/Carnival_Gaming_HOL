@@ -1,6 +1,6 @@
 name: Cruise Ship Casino Analytics
 description: >
-  Semantic model for analyzing gaming operations across Carnival and Holland America
+  Semantic view for analyzing gaming operations across Carnival and Holland America
   cruise ship casinos. Covers revenue, player behavior, voyage performance, and game metrics.
 
 tables:
@@ -16,53 +16,73 @@ tables:
         expr: gaming_date
         data_type: DATE
       - name: ship_name
+        synonyms: ["ship", "vessel"]
         description: Name of the cruise ship
         expr: ship_name
         data_type: VARCHAR
       - name: brand
+        synonyms: ["cruise line", "line"]
         description: Cruise line brand (Carnival or Holland America)
         expr: brand
         data_type: VARCHAR
+        is_enum: true
+        sample_values: ["Carnival", "Holland America"]
       - name: game_type
+        synonyms: ["game category", "type of game"]
         description: Category of casino game (Slots, Blackjack, Poker, Roulette, Craps, Baccarat)
         expr: game_type
         data_type: VARCHAR
-    measures:
+        is_enum: true
+        sample_values: ["Slots", "Blackjack", "Poker", "Roulette", "Craps", "Baccarat"]
+    facts:
       - name: transaction_count
         description: Number of gaming transactions
         expr: transaction_count
         data_type: NUMBER
-        default_aggregation: sum
       - name: unique_players
         description: Number of distinct players
         expr: unique_players
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_wagered
         description: Total amount bet by players in dollars
         expr: total_wagered
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_payouts
         description: Total amount paid out to players in dollars
         expr: total_payouts
         data_type: NUMBER
-        default_aggregation: sum
       - name: house_revenue
         description: Net revenue for the casino (total wagered minus payouts) in dollars
         expr: house_revenue
         data_type: NUMBER
-        default_aggregation: sum
       - name: avg_bet_size
         description: Average bet amount per transaction in dollars
         expr: avg_bet_size
         data_type: NUMBER
-        default_aggregation: avg
       - name: house_edge_pct
         description: House edge as a percentage of total wagered
         expr: house_edge_pct
         data_type: NUMBER
-        default_aggregation: avg
+    metrics:
+      - name: total_revenue
+        synonyms: ["revenue", "gaming revenue", "casino revenue"]
+        description: Total house revenue in dollars
+        expr: SUM(house_revenue)
+      - name: total_amount_wagered
+        synonyms: ["total wagered", "total bets"]
+        description: Total amount wagered by all players in dollars
+        expr: SUM(total_wagered)
+      - name: total_transactions
+        description: Total number of gaming transactions
+        expr: SUM(transaction_count)
+      - name: avg_house_edge
+        synonyms: ["house edge", "edge"]
+        description: Average house edge percentage
+        expr: AVG(house_edge_pct)
+      - name: avg_bet
+        synonyms: ["average bet", "bet size"]
+        description: Average bet size in dollars
+        expr: AVG(avg_bet_size)
 
   - name: VOYAGE_PERFORMANCE
     description: Gaming performance metrics aggregated by voyage
@@ -76,14 +96,19 @@ tables:
         expr: voyage_id
         data_type: NUMBER
       - name: ship_name
+        synonyms: ["ship", "vessel"]
         description: Name of the cruise ship
         expr: ship_name
         data_type: VARCHAR
       - name: brand
+        synonyms: ["cruise line"]
         description: Cruise line brand (Carnival or Holland America)
         expr: brand
         data_type: VARCHAR
+        is_enum: true
+        sample_values: ["Carnival", "Holland America"]
       - name: itinerary_name
+        synonyms: ["itinerary", "route", "cruise"]
         description: Name of the cruise itinerary (e.g., Eastern Caribbean 7-Day)
         expr: itinerary_name
         data_type: VARCHAR
@@ -95,6 +120,7 @@ tables:
         description: Voyage return date
         expr: return_date
         data_type: DATE
+    facts:
       - name: sea_days
         description: Number of days at sea during the voyage
         expr: sea_days
@@ -107,37 +133,45 @@ tables:
         description: Total duration of the voyage in days
         expr: total_days
         data_type: NUMBER
-    measures:
       - name: total_transactions
         description: Total number of gaming transactions on this voyage
         expr: total_transactions
         data_type: NUMBER
-        default_aggregation: sum
       - name: unique_players
         description: Number of distinct players who gambled on this voyage
         expr: unique_players
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_wagered
         description: Total amount wagered on this voyage in dollars
         expr: total_wagered
         data_type: NUMBER
-        default_aggregation: sum
       - name: house_revenue
         description: Net casino revenue for this voyage in dollars
         expr: house_revenue
         data_type: NUMBER
-        default_aggregation: sum
       - name: revenue_per_day
         description: Average daily casino revenue for this voyage in dollars
         expr: revenue_per_day
         data_type: NUMBER
-        default_aggregation: avg
       - name: revenue_per_passenger
         description: Casino revenue per passenger capacity on this voyage in dollars
         expr: revenue_per_passenger
         data_type: NUMBER
-        default_aggregation: avg
+    metrics:
+      - name: total_voyage_revenue
+        synonyms: ["voyage revenue"]
+        description: Total casino revenue across all voyages
+        expr: SUM(house_revenue)
+      - name: avg_revenue_per_day
+        synonyms: ["daily revenue", "revenue per day"]
+        description: Average daily casino revenue across voyages
+        expr: AVG(revenue_per_day)
+      - name: avg_revenue_per_passenger
+        description: Average casino revenue per passenger across voyages
+        expr: AVG(revenue_per_passenger)
+      - name: avg_unique_players
+        description: Average number of unique players per voyage
+        expr: AVG(unique_players)
 
   - name: PLAYER_SUMMARY
     description: Aggregated player gaming statistics and behavior
@@ -151,66 +185,81 @@ tables:
         expr: player_id
         data_type: NUMBER
       - name: player_name
+        synonyms: ["player", "gambler"]
         description: Full name of the player
         expr: player_name
         data_type: VARCHAR
       - name: loyalty_tier
+        synonyms: ["tier", "loyalty level", "membership level"]
         description: Player loyalty program tier (Bronze, Silver, Gold, Platinum, Diamond)
         expr: loyalty_tier
         data_type: VARCHAR
+        is_enum: true
+        sample_values: ["Bronze", "Silver", "Gold", "Platinum", "Diamond"]
       - name: home_city
         description: Player home city
         expr: home_city
         data_type: VARCHAR
       - name: home_state
+        synonyms: ["state"]
         description: Player home state
         expr: home_state
         data_type: VARCHAR
       - name: favorite_game_type
+        synonyms: ["preferred game", "favorite game"]
         description: The game type the player plays most often
         expr: favorite_game_type
         data_type: VARCHAR
-    measures:
+    facts:
       - name: voyages_played
         description: Number of voyages on which the player gambled
         expr: voyages_played
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_bets
         description: Total number of bets placed by the player
         expr: total_bets
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_wagered
         description: Total amount wagered by the player in dollars
         expr: total_wagered
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_won
         description: Total amount won (paid out) to the player in dollars
         expr: total_won
         data_type: NUMBER
-        default_aggregation: sum
       - name: total_lost_to_house
         description: Total amount the player lost to the house in dollars
         expr: total_lost_to_house
         data_type: NUMBER
-        default_aggregation: sum
       - name: avg_bet_size
         description: Average bet size for this player in dollars
         expr: avg_bet_size
         data_type: NUMBER
-        default_aggregation: avg
       - name: largest_bet
         description: Largest single bet placed by this player in dollars
         expr: largest_bet
         data_type: NUMBER
-        default_aggregation: max
+    metrics:
+      - name: total_player_wagered
+        synonyms: ["total wagered by players"]
+        description: Total amount wagered across all players
+        expr: SUM(total_wagered)
+      - name: total_player_losses
+        synonyms: ["total lost", "house winnings from players"]
+        description: Total amount lost to house across all players
+        expr: SUM(total_lost_to_house)
+      - name: avg_player_bet
+        description: Average bet size across all players
+        expr: AVG(avg_bet_size)
+      - name: player_count
+        description: Total number of players
+        expr: COUNT(player_id)
 
 verified_queries:
   - name: total_revenue_by_brand
     question: What is total gaming revenue by brand?
-    sql: >
+    use_as_onboarding_question: true
+    sql: |
       SELECT brand, SUM(house_revenue) AS total_revenue
       FROM HOL_USER_09_DB.GOLD.DAILY_SHIP_REVENUE
       GROUP BY brand
@@ -218,7 +267,8 @@ verified_queries:
 
   - name: top_ships_by_revenue
     question: Which ships generate the most casino revenue?
-    sql: >
+    use_as_onboarding_question: true
+    sql: |
       SELECT ship_name, brand, SUM(house_revenue) AS total_revenue,
              SUM(total_wagered) AS total_wagered,
              ROUND(AVG(house_edge_pct), 2) AS avg_house_edge
@@ -228,7 +278,8 @@ verified_queries:
 
   - name: revenue_by_game_type
     question: What is revenue by game type?
-    sql: >
+    use_as_onboarding_question: true
+    sql: |
       SELECT game_type, SUM(house_revenue) AS total_revenue,
              SUM(transaction_count) AS total_transactions,
              ROUND(AVG(house_edge_pct), 2) AS avg_house_edge
@@ -238,7 +289,7 @@ verified_queries:
 
   - name: top_players_by_wagered
     question: Who are the top 10 players by total amount wagered?
-    sql: >
+    sql: |
       SELECT player_name, loyalty_tier, total_wagered, total_won,
              total_lost_to_house, total_bets, favorite_game_type
       FROM HOL_USER_09_DB.SILVER.PLAYER_SUMMARY_H
@@ -247,7 +298,7 @@ verified_queries:
 
   - name: voyage_performance_ranked
     question: Which voyages had the best casino performance?
-    sql: >
+    sql: |
       SELECT ship_name, brand, itinerary_name, departure_date,
              house_revenue, revenue_per_day, revenue_per_passenger,
              unique_players, sea_days, port_days

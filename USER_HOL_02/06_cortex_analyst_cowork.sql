@@ -3,8 +3,8 @@
   Carnival Gaming HOL -- User 02
   
   In this section you will:
-  - Upload a semantic model that describes your gaming data
-  - Create a Cortex Analyst agent in Snowflake CoWork (Intelligence)
+  - Create a semantic view from a YAML definition
+  - Set up a Cortex Analyst agent in Snowflake CoWork (Intelligence)
   - Ask natural language questions about casino revenue and performance
 =============================================================================*/
 
@@ -13,42 +13,51 @@ USE WAREHOUSE HOL_USER_02_WH;
 USE DATABASE HOL_USER_02_DB;
 
 -- ==========================================================================
--- Step 1: Create a stage for the semantic model
+-- Step 1: Create a stage and upload the semantic model YAML
 -- ==========================================================================
 
 CREATE STAGE IF NOT EXISTS GOLD.SEMANTIC_MODELS
   DIRECTORY = (ENABLE = TRUE)
   COMMENT = 'Stage for Cortex Analyst semantic model YAML files';
 
--- ==========================================================================
--- Step 2: Upload the semantic model
--- 
--- IMPORTANT: You need to upload the semantic_model.yaml file to this stage.
+-- IMPORTANT: Upload the semantic_model.yaml file to this stage.
+--
 -- Option A (Snowsight UI): 
 --   1. Navigate to Data > HOL_USER_02_DB > GOLD > Stages
 --   2. Click on SEMANTIC_MODELS
---   3. Click "+ Files" and upload semantic_model.yaml from your user folder
+--   3. Click "+ Files" and upload semantic_model.yaml from your workspace folder
 --
 -- Option B (SnowSQL/CLI):
 --   PUT file://./semantic_model.yaml @HOL_USER_02_DB.GOLD.SEMANTIC_MODELS
 --     AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
--- ==========================================================================
 
 -- Verify the file was uploaded
 LIST @GOLD.SEMANTIC_MODELS;
 
 -- ==========================================================================
--- Step 3: Create a Semantic View from the YAML
+-- Step 2: Create the Semantic View from the YAML
 -- ==========================================================================
 
-CREATE OR REPLACE SEMANTIC VIEW GOLD.GAMING_SEMANTIC_MODEL
-  FROM @GOLD.SEMANTIC_MODELS/semantic_model.yaml;
+-- Read the YAML from stage and create the semantic view
+CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(
+    'HOL_USER_02_DB.GOLD.GAMING_SEMANTIC_MODEL',
+    (SELECT TO_VARCHAR(GET_PRESIGNED_URL(@GOLD.SEMANTIC_MODELS, 'semantic_model.yaml')))
+);
 
--- Verify the semantic view
+-- If the above errors, try this alternative approach:
+-- Read YAML content directly from stage and pass it
+/*
+CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(
+    'HOL_USER_02_DB.GOLD.GAMING_SEMANTIC_MODEL',
+    (SELECT $1 FROM @GOLD.SEMANTIC_MODELS/semantic_model.yaml (FILE_FORMAT => (TYPE = 'CSV' FIELD_DELIMITER = NONE RECORD_DELIMITER = NONE)))
+);
+*/
+
+-- Verify the semantic view was created
 DESCRIBE SEMANTIC VIEW GOLD.GAMING_SEMANTIC_MODEL;
 
 -- ==========================================================================
--- Step 4: Set up CoWork (Snowflake Intelligence)
+-- Step 3: Set up CoWork (Snowflake Intelligence)
 --
 -- INSTRUCTIONS (done in the Snowsight UI):
 --
@@ -94,11 +103,19 @@ DESCRIBE SEMANTIC VIEW GOLD.GAMING_SEMANTIC_MODEL;
 */
 
 -- ==========================================================================
--- Step 5: You can also query the analyst programmatically via SQL
+-- Step 4: Query the semantic view directly with SQL
 -- ==========================================================================
 
--- Test: Ask a question via SQL (returns the generated query)
-SELECT SNOWFLAKE.CORTEX.ANALYST(
-    'What is total gaming revenue by brand?',
-    FROM_TABLE => 'HOL_USER_02_DB.GOLD.GAMING_SEMANTIC_MODEL'
+-- You can also query the semantic view directly using SEMANTIC_VIEW()
+SELECT * FROM SEMANTIC_VIEW(
+    GOLD.GAMING_SEMANTIC_MODEL
+    DIMENSIONS DAILY_SHIP_REVENUE.brand
+    METRICS DAILY_SHIP_REVENUE.total_revenue, DAILY_SHIP_REVENUE.total_amount_wagered
+);
+
+-- Revenue by game type
+SELECT * FROM SEMANTIC_VIEW(
+    GOLD.GAMING_SEMANTIC_MODEL
+    DIMENSIONS DAILY_SHIP_REVENUE.game_type
+    METRICS DAILY_SHIP_REVENUE.total_revenue, DAILY_SHIP_REVENUE.avg_house_edge
 );
