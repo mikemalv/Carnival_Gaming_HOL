@@ -10,14 +10,26 @@ Welcome! This folder contains everything you need for the lab. All SQL files are
 | Warehouse | `HOL_USER_05_WH` |
 | Database | `HOL_USER_05_DB` |
 
+## Where to Find Your Files
+
+Your SQL files are available in **two places** -- use whichever is easier:
+
+**Option A -- Snowflake Workspace (recommended):**
+1. In Snowsight, go to **Projects > Workspaces**
+2. Open **HOL_WORKSPACES > USER_HOL_05**
+3. Click any `.sql` file to open it directly as a worksheet
+
+**Option B -- This GitHub folder:**
+1. Click any `.sql` file link below
+2. Copy its contents into a new Snowsight SQL Worksheet
+
 ## How This Works
 
 For each section below:
 
-1. Open a **new SQL Worksheet** in [Snowsight](https://app.snowflake.com)
-2. Copy the contents of the linked SQL file into the worksheet
-3. **Run the statements top to bottom** (or highlight and run one section at a time)
-4. Read the comments in the SQL -- they explain what each step does
+1. Open the SQL file (from your workspace or from the link below)
+2. **Run the statements top to bottom** (or highlight and run one section at a time)
+3. Read the comments in the SQL -- they explain what each step does
 
 > Every SQL file starts with `USE ROLE` / `USE WAREHOUSE` / `USE DATABASE` so your context is always set correctly. You cannot break anyone else's work.
 
