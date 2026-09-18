@@ -1,0 +1,23 @@
+game_id,game_type,game_name,min_bet,max_bet,location_deck
+1,Slots,Lucky 7s Deluxe,0.25,100.0,Deck 6
+2,Slots,Caribbean Gold,0.25,100.0,Deck 6
+3,Slots,Pirates Fortune,0.25,100.0,Deck 7
+4,Slots,Ocean Jackpot,0.25,100.0,Deck 7
+5,Slots,Coral Reef Riches,0.25,100.0,Deck 7
+6,Slots,Treasure Island Slots,0.25,100.0,Deck 8
+7,Slots,Neptunes Bounty,0.25,100.0,Deck 7
+8,Slots,Cruise Cash,0.25,100.0,Deck 6
+9,Slots,Sunset Spin,0.25,100.0,Deck 7
+10,Slots,Diamond Waves,0.25,100.0,Deck 7
+11,Blackjack,Classic Blackjack,10,500,Deck 7
+12,Blackjack,VIP Blackjack,25,2000,Deck 9
+13,Blackjack,Blackjack Switch,15,1000,Deck 8
+14,Poker,Texas Holdem,20,500,Deck 9
+15,Poker,Caribbean Stud Poker,10,300,Deck 9
+16,Poker,Three Card Poker,10,500,Deck 9
+17,Roulette,American Roulette,5,500,Deck 7
+18,Roulette,European Roulette,5,500,Deck 9
+19,Craps,Classic Craps,5,500,Deck 9
+20,Craps,High-Roller Craps,25,2000,Deck 7
+21,Baccarat,Mini Baccarat,15,1000,Deck 9
+22,Baccarat,VIP Baccarat,50,5000,Deck 9

@@ -1,0 +1,13 @@
+ship_id,ship_name,brand,passenger_capacity,home_port,launch_year
+1,Mardi Gras,Carnival,5282,Port Canaveral,2020
+2,Celebration,Carnival,5374,Miami,2022
+3,Jubilee,Carnival,5374,Galveston,2023
+4,Carnival Venezia,Carnival,4072,New York,2023
+5,Carnival Firenze,Carnival,4072,Long Beach,2024
+6,Carnival Panorama,Carnival,4008,Long Beach,2019
+7,Rotterdam,Holland America,2668,Fort Lauderdale,2021
+8,Nieuw Statendam,Holland America,2666,Fort Lauderdale,2018
+9,Koningsdam,Holland America,2650,San Diego,2016
+10,Zuiderdam,Holland America,1964,Fort Lauderdale,2002
+11,Westerdam,Holland America,1964,Seattle,2004
+12,Volendam,Holland America,1432,Fort Lauderdale,2000
