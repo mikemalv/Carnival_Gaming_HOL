@@ -13,7 +13,40 @@ USE WAREHOUSE HOL_USER_08_WH;
 USE DATABASE HOL_USER_08_DB;
 
 -- ==========================================================================
--- Step 1: Create a Cortex Search Service
+-- Step 1: Materialize the AI-enriched reviews into a table
+--
+-- WHY materialize instead of calling AI_SENTIMENT inside the search
+-- service definition? Two reasons:
+--   1. Cortex Search change tracking does not support inline AI function
+--      calls, so an incremental refresh on that definition can fail.
+--   2. Cost. The service refreshes on its TARGET_LAG. If AI_SENTIMENT
+--      sits in the definition, you pay to re-score every review on every
+--      refresh. Materializing scores each review exactly once.
+-- ==========================================================================
+
+CREATE OR REPLACE TABLE GOLD.REVIEWS_FOR_SEARCH AS
+SELECT
+    r.review_id,
+    r.review_text,
+    r.rating,
+    r.review_date,
+    s.ship_name,
+    s.brand,
+    v.itinerary_name,
+    AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_category
+FROM BRONZE.PLAYER_REVIEWS r
+JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
+JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
+WHERE r.language = 'en';
+
+-- Sanity check the labels before indexing them
+SELECT sentiment_category, COUNT(*) AS review_count
+FROM GOLD.REVIEWS_FOR_SEARCH
+GROUP BY sentiment_category
+ORDER BY review_count DESC;
+
+-- ==========================================================================
+-- Step 2: Create the Cortex Search Service over that table
 -- This indexes your review text for semantic search
 -- ==========================================================================
 
@@ -24,22 +57,19 @@ CREATE OR REPLACE CORTEX SEARCH SERVICE GOLD.REVIEW_SEARCH
   TARGET_LAG = '1 hour'
 AS (
     SELECT
-        r.review_id,
-        r.review_text,
-        r.rating,
-        r.review_date,
-        s.ship_name,
-        s.brand,
-        v.itinerary_name,
-        AI_SENTIMENT(r.review_text):categories[0]:sentiment::VARCHAR AS sentiment_category
-    FROM BRONZE.PLAYER_REVIEWS r
-    JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
-    JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
-    WHERE r.language = 'en'
+        review_id,
+        review_text,
+        rating,
+        review_date,
+        ship_name,
+        brand,
+        itinerary_name,
+        sentiment_category
+    FROM GOLD.REVIEWS_FOR_SEARCH
 );
 
 -- ==========================================================================
--- Step 2: Search for reviews -- semantic, not just keyword matching!
+-- Step 3: Search for reviews -- semantic, not just keyword matching!
 -- ==========================================================================
 
 -- Search: Find reviews about slot machine payouts

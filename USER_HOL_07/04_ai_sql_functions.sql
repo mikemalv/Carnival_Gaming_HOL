@@ -133,11 +133,16 @@ SELECT AI_COMPLETE(
 ) AS executive_briefing;
 
 -- ==========================================================================
--- Step 5: Create an Enriched Reviews View
--- Combine sentiment + classification into one reusable view
+-- Step 5: Create an Enriched Reviews Table
+-- Combine review detail + AI sentiment into one reusable object.
+--
+-- NOTE: this is a TABLE, not a VIEW, on purpose. If it were a view, the
+-- AI_SENTIMENT call would re-run on every single query against it -- you
+-- would pay to re-score all ~860 reviews each time. Materializing scores
+-- them once. Re-run this CREATE OR REPLACE when the reviews change.
 -- ==========================================================================
 
-CREATE OR REPLACE VIEW GOLD.ENRICHED_REVIEWS AS
+CREATE OR REPLACE TABLE GOLD.ENRICHED_REVIEWS AS
 SELECT
     r.review_id,
     r.player_id,
@@ -154,7 +159,8 @@ JOIN BRONZE.SHIPS s ON r.ship_id = s.ship_id
 JOIN BRONZE.VOYAGES v ON r.voyage_id = v.voyage_id
 WHERE r.language = 'en';
 
--- Verify the enriched view
+-- Verify the enriched table. Sentiment should track the star ratings:
+-- 'positive' rows average a high rating, 'negative' rows a low one.
 SELECT sentiment_category, COUNT(*) AS review_count,
        ROUND(AVG(rating), 1) AS avg_star_rating
 FROM GOLD.ENRICHED_REVIEWS

@@ -159,7 +159,7 @@ For each section below:
 **Open:** [05_cortex_search.sql](05_cortex_search.sql)
 
 **What you will learn:**
-- Create a Cortex Search Service over player reviews
+- Materialize AI-enriched data, then index it with a Cortex Search Service
 - Perform semantic (meaning-based) searches that go beyond keywords
 - Filter search results by ship, brand, and sentiment
 
@@ -167,15 +167,23 @@ For each section below:
 
 **What to do:**
 1. Paste the file into a new Worksheet
-2. Run the `CREATE CORTEX SEARCH SERVICE` statement (takes ~1 minute to index)
-3. Run the sample search queries and examine the results
-4. Try your own searches -- think about what a casino operations manager would look for
+2. Run the `CREATE OR REPLACE TABLE GOLD.REVIEWS_FOR_SEARCH` statement first
+3. Then run the `CREATE CORTEX SEARCH SERVICE` statement (takes ~1 minute to index)
+4. Run the sample search queries and examine the results
+5. Try your own searches -- think about what a casino operations manager would look for
+
+> **Why two steps instead of one?** It is tempting to call `AI_SENTIMENT`
+> directly inside the search service definition. Do not. Cortex Search change
+> tracking does not support inline AI function calls, and the service refreshes
+> on its `TARGET_LAG` -- so you would also pay to re-score every review on every
+> refresh. Materializing to a table scores each review exactly once.
 
 **Sample searches to try:**
 - `"slot machines paying out well"` -- finds reviews about winning, even without the word "payout"
 - `"rude or unfriendly dealer experience"` -- surfaces complaints using various phrasings
 - `"poker tournament experience on sea days"` -- finds tournament-related feedback
 - `"best casino experience"` with a Carnival-only filter -- shows filtered semantic search
+- `"payouts and odds"` filtered to `sentiment_category = 'negative'` -- combines semantic search with an AI-derived attribute
 
 ---
 
@@ -301,6 +309,26 @@ Run this file **only when instructed by your lab facilitator.** It drops all obj
 | "Insufficient privileges" | Run `SELECT CURRENT_ROLE();` -- you should see `HOL_USER_06_ROLE`. If not, run `USE ROLE HOL_USER_06_ROLE;` |
 | Dynamic Table not refreshing | Run `SHOW DYNAMIC TABLES IN DATABASE HOL_USER_06_DB;` and check the `SCHEDULING_STATE` column |
 | Cortex Search taking a long time | The first indexing takes 1-2 minutes. Subsequent queries are fast. |
-| CoWork not finding answers | Verify the `semantic_model.yaml` was uploaded to the stage and the `CREATE SEMANTIC VIEW` ran successfully |
+| CoWork not finding answers | Verify `COPY FILES` pulled `semantic_model.yaml` onto the stage (`LIST @GOLD.SEMANTIC_MODELS;`) and the semantic view was created successfully |
 | AI function errors | Ask your instructor to verify the `SNOWFLAKE.CORTEX_USER` database role is granted to `HOL_USER_06_ROLE` |
+| **An AI column comes back all NULL (no error)** | You are almost certainly using the wrong JSON accessor. These fail *silently* -- see the table below. |
 | Wrong results in queries | Check that you are in the right database: `SELECT CURRENT_DATABASE();` should show `HOL_USER_06_DB` |
+
+### Silent NULL traps with AI functions
+
+These do not raise an error -- they just return NULL for every row, which is
+easy to mistake for "the AI found nothing." If a column is entirely NULL,
+check this first:
+
+| Function | Wrong (silent NULL) | Correct |
+|----------|--------------------|---------|
+| `AI_CLASSIFY` | `:label` | `:labels[0]` -- it is an **array**, and the key is plural |
+| `AI_EXTRACT` | `:my_field` | `:response:my_field` -- fields are nested under `response` |
+| `AI_SENTIMENT` | `:sentiment` | `:categories[0]:sentiment` |
+
+To debug any of these, select the raw object first and look at its actual shape:
+
+```sql
+SELECT AI_CLASSIFY(review_text, ['Dealer Quality','Pricing']) AS raw_object
+FROM BRONZE.PLAYER_REVIEWS LIMIT 1;
+```
