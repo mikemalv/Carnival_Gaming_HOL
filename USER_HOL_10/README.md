@@ -23,6 +23,19 @@ Your SQL files are available in **two places** -- use whichever is easier:
 1. Click any `.sql` file link below
 2. Copy its contents into a new Snowsight SQL Worksheet
 
+### These directions in other formats
+
+This page is also provided as a formatted document, in case you would rather
+read it side-by-side with Snowsight or print it:
+
+| File | Use it for |
+|------|-----------|
+| [README.html](README.html) | Open in a browser -- same content, easier to read, links still work |
+| [README.pdf](README.pdf) | Print it or read offline (US Letter) |
+
+> Both are generated from this `README.md`, so it stays the single source of
+> truth. If something looks out of date, trust the `.md` and the `.sql` files.
+
 ## How This Works
 
 For each section below:
