@@ -1,6 +1,8 @@
+<img src="../assets/hol-banner.svg" alt="Carnival and Holland America - Casino Gaming Analytics Hands-On Lab" width="100%">
+
 # Carnival Cruise Gaming HOL -- User 04
 
-Welcome! This folder contains everything you need for the lab. All SQL files are pre-configured for your Snowflake environment -- just follow the sections below in order.
+Welcome! This folder contains everything you need for the lab. All files are pre-configured for your Snowflake environment -- just follow the sections below in order.
 
 ## Your Environment
 
@@ -12,16 +14,20 @@ Welcome! This folder contains everything you need for the lab. All SQL files are
 
 ## Where to Find Your Files
 
-Your SQL files are available in **two places** -- use whichever is easier:
+Your lab files are available in **two places** -- use whichever is easier:
 
 **Option A -- Snowflake Workspace (recommended):**
 1. In Snowsight, go to **Projects > Workspaces**
 2. Open **HOL_WORKSPACES > USER_HOL_04**
-3. Click any `.sql` file to open it directly as a worksheet
+3. Click any `.sql` file to open it directly as a worksheet, or the `.ipynb`
+   file (Section 9) to open it as a notebook
 
 **Option B -- This GitHub folder:**
 1. Click any `.sql` file link below
 2. Copy its contents into a new Snowsight SQL Worksheet
+
+> Sections 1-8 and 10 are SQL worksheets. **Section 9 is a notebook** and must
+> be run from your Workspace -- it cannot be pasted into a worksheet.
 
 ### These directions in other formats
 
@@ -306,11 +312,49 @@ Both tools at once:
 
 ---
 
-## Cleanup (Optional)
+## Section 9: Python and Snowpark
 
-**Open:** [09_cleanup.sql](09_cleanup.sql)
+**Open:** [09_snowpark_notebook.ipynb](09_snowpark_notebook.ipynb)
 
-Run this file **only when instructed by your lab facilitator.** It drops all objects in your database and suspends your warehouse.
+This one is a **notebook**, not a worksheet. Open it directly from your
+Workspace file list and run the cells top to bottom.
+
+**What you will learn:**
+- How Snowpark DataFrames are **lazy** -- they build SQL, they do not move data
+- `select` / `filter` / `join` / `group_by` / `agg` against your gaming tables
+- Window functions to rank players within each brand
+- Writing results back into a Snowflake table with `save_as_table`
+- Registering a **Python UDF** and calling it like any SQL function
+- Calling Cortex AI functions from Snowpark
+- Charting the results with matplotlib
+
+**Business context:** Worksheets are great for exploration, but production
+pipelines, applications, and scheduled jobs are usually written in Python. This
+section rebuilds the lab's analytics in Snowpark so you can see that the API is
+just SQL with a Python face -- the compute still happens in Snowflake and the
+data never moves.
+
+**What to do:**
+1. Open the notebook from your Workspace
+2. Pick `HOL_USER_04_WH` as the warehouse in the notebook toolbar
+3. Run the cells in order, reading the markdown between them
+4. If `import matplotlib` fails, add it from the **Packages** menu at the top
+
+> **Prerequisite:** Sections 1 and 2 must be complete -- the notebook reads your
+> BRONZE tables and writes to `GOLD.PLAYER_VALUE_SNOWPARK`.
+
+---
+
+## Section 10: Cleanup (Optional)
+
+**Open:** [10_cleanup.sql](10_cleanup.sql)
+
+**Every statement in this file is commented out on purpose,** so opening and
+running it by accident cannot destroy your work.
+
+Run it **only when your lab facilitator says the lab is over.** To use it,
+uncomment the statements (select the lines and press `Cmd+/` or `Ctrl+/`), then
+run the script. It drops all your schemas and suspends your warehouse.
 
 ---
 

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="Carnival and Holland America Casino Gaming Analytics - Snowflake Hands-On Lab">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0b2545"/>
+      <stop offset="55%" stop-color="#11395f"/>
+      <stop offset="100%" stop-color="#16507f"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#29b5e8" stop-opacity="0.00"/>
+      <stop offset="50%" stop-color="#29b5e8" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#29b5e8" stop-opacity="0.00"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="300" fill="url(#sea)"/>
+  <rect x="0" y="0" width="1200" height="150" fill="url(#sky)"/>
+
+  <!-- horizon -->
+  <line x1="0" y1="196" x2="1200" y2="196" stroke="#29b5e8" stroke-opacity="0.28" stroke-width="2"/>
+
+  <!-- ship -->
+  <g transform="translate(838 96)">
+    <!-- hull -->
+    <path d="M6 96 L246 96 L222 128 L34 128 Z" fill="#0a1c33" stroke="#29b5e8" stroke-opacity="0.55" stroke-width="2"/>
+    <!-- superstructure decks -->
+    <rect x="42" y="66" width="176" height="30" rx="3" fill="#13304f" stroke="#29b5e8" stroke-opacity="0.35" stroke-width="1.5"/>
+    <rect x="66" y="44" width="128" height="22" rx="3" fill="#173a5e" stroke="#29b5e8" stroke-opacity="0.3" stroke-width="1.5"/>
+    <rect x="92" y="26" width="76" height="18" rx="3" fill="#1b456e" stroke="#29b5e8" stroke-opacity="0.3" stroke-width="1.5"/>
+    <!-- funnel -->
+    <path d="M150 26 L150 4 L178 4 L172 26 Z" fill="#29b5e8" fill-opacity="0.85"/>
+    <!-- portholes -->
+    <circle cx="66" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+    <circle cx="90" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+    <circle cx="114" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+    <circle cx="138" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+    <circle cx="162" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+    <circle cx="186" cy="81" r="4" fill="#9fe4ff" fill-opacity="0.8"/>
+  </g>
+
+  <!-- wave lines -->
+  <path d="M812 246 q28 -12 56 0 t56 0 t56 0 t56 0 t56 0" fill="none" stroke="#29b5e8" stroke-opacity="0.45" stroke-width="3"/>
+  <path d="M836 268 q28 -12 56 0 t56 0 t56 0 t56 0" fill="none" stroke="#29b5e8" stroke-opacity="0.28" stroke-width="3"/>
+
+  <!-- casino chips -->
+  <g transform="translate(96 196)">
+    <circle cx="0" cy="0" r="30" fill="#0f2a47" stroke="#29b5e8" stroke-width="3"/>
+    <circle cx="0" cy="0" r="18" fill="none" stroke="#9fe4ff" stroke-opacity="0.7" stroke-width="3" stroke-dasharray="7 7"/>
+    <circle cx="0" cy="0" r="6" fill="#29b5e8"/>
+  </g>
+  <g transform="translate(150 214)">
+    <circle cx="0" cy="0" r="22" fill="#11395f" stroke="#9fe4ff" stroke-opacity="0.8" stroke-width="3"/>
+    <circle cx="0" cy="0" r="11" fill="none" stroke="#29b5e8" stroke-width="3" stroke-dasharray="6 6"/>
+  </g>
+
+  <!-- wordmarks -->
+  <text x="64" y="86" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" letter-spacing="7" fill="#ffffff">CARNIVAL</text>
+  <text x="64" y="132" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" font-weight="400" letter-spacing="5" fill="#9fe4ff">HOLLAND AMERICA</text>
+
+  <line x1="64" y1="152" x2="392" y2="152" stroke="#29b5e8" stroke-width="3"/>
+
+  <text x="196" y="196" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="25" font-weight="600" fill="#ffffff">Casino Gaming Analytics</text>
+  <text x="196" y="226" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="19" font-weight="400" fill="#bcd7ee">Snowflake AI Data Cloud &#183; Hands-On Lab</text>
+</svg>

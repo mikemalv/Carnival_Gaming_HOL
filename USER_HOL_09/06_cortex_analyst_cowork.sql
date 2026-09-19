@@ -29,12 +29,16 @@ CREATE OR REPLACE FILE FORMAT GOLD.YAML_FF
 -- semantic_model.yaml already sits in your workspace next to this file,
 -- so there is nothing to upload by hand -- COPY FILES moves it for you.
 --
--- If you edited the YAML, run ALTER WORKSPACE ... COMMIT first (or just
--- re-run this COPY FILES, which always pulls the current 'live' version).
+-- Note the path says 'versions/head' -- that is the published version of
+-- your workspace, which is what you are looking at. ('versions/live' only
+-- exists while a workspace has uncommitted edits, so it is not reliable.)
+-- If you edit the YAML yourself, run
+--   ALTER WORKSPACE HOL_WORKSPACES.PUBLIC.USER_HOL_09 COMMIT;
+-- to publish your change, then re-run this COPY FILES.
 -- ==========================================================================
 
 COPY FILES INTO @GOLD.SEMANTIC_MODELS/
-FROM 'snow://workspace/HOL_WORKSPACES.PUBLIC.USER_HOL_09/versions/live/'
+FROM 'snow://workspace/HOL_WORKSPACES.PUBLIC.USER_HOL_09/versions/head/'
 FILES = ('semantic_model.yaml');
 
 -- Verify the file arrived

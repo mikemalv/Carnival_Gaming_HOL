@@ -30,6 +30,8 @@ STYLE = """
 
 * { box-sizing: border-box; }
 
+.banner { margin: 0 0 8px; line-height: 0; }
+.banner svg { display: block; width: 100%; height: auto; border-radius: 6px; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-size: 15px;
@@ -205,6 +207,30 @@ def wrap_tables(body: str) -> str:
     )
 
 
+BANNER_IMG = re.compile(r'<img\s[^>]*src="[^"]*hol-banner\.svg"[^>]*>')
+
+
+def inline_banner(body: str) -> str:
+    """Replace the banner <img> with the SVG source itself.
+
+    The markdown points at ../assets/hol-banner.svg, which resolves on GitHub
+    and in a clone. It does NOT resolve in a Snowflake Workspace, where each
+    user's files sit flat in one directory with no assets/ folder. Inlining the
+    SVG makes the HTML -- and therefore the PDF -- self-contained wherever it
+    ends up.
+    """
+    banner = REPO / "assets" / "hol-banner.svg"
+    if not banner.exists():
+        return body
+
+    svg = banner.read_text(encoding="utf-8")
+    # Inline SVG must not carry an XML prolog.
+    svg = re.sub(r"^\s*<\?xml[^>]*\?>\s*", "", svg)
+    # Scale to the content column rather than its intrinsic 1200px.
+    svg = svg.replace('width="1200" height="300"', 'width="100%"', 1)
+    return BANNER_IMG.sub(lambda _: f'<div class="banner">{svg}</div>', body, count=1)
+
+
 def main() -> int:
     if not shutil.which("pandoc"):
         print("error: pandoc not found", file=sys.stderr)
@@ -237,7 +263,7 @@ def main() -> int:
             failures.append(f"{folder.name}: pandoc failed: {proc.stderr.strip()}")
             continue
 
-        body = wrap_tables(proc.stdout)
+        body = inline_banner(wrap_tables(proc.stdout))
 
         # Pull the H1 for <title>, stripping any tags pandoc left inside it.
         m = re.search(r"<h1[^>]*>(.*?)</h1>", body, re.S)
