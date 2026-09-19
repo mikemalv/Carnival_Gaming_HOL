@@ -292,5 +292,75 @@ GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO ROLE HOL_USER_08_ROLE;
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO ROLE HOL_USER_09_ROLE;
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE TO ROLE HOL_USER_10_ROLE;
 
+-- ==========================================================================
+-- Account-level privileges the lab needs
+--
+-- These were applied live during lab prep and are recorded here so the whole
+-- environment can be rebuilt from this script alone.
+-- ==========================================================================
+
+EXECUTE IMMEDIATE $$
+DECLARE
+  i INT DEFAULT 1;
+  r VARCHAR;
+BEGIN
+  WHILE (i <= 10) DO
+    r := 'HOL_USER_' || LPAD(i::VARCHAR, 2, '0') || '_ROLE';
+
+    -- Section 1 and the Snowpark notebook let users create their own objects.
+    EXECUTE IMMEDIATE 'GRANT CREATE DATABASE ON ACCOUNT TO ROLE ' || r;
+
+    -- So users can inspect their own warehouse activity.
+    EXECUTE IMMEDIATE 'GRANT MONITOR ON WAREHOUSE HOL_USER_'
+                      || LPAD(i::VARCHAR, 2, '0') || '_WH TO ROLE ' || r;
+    i := i + 1;
+  END WHILE;
+  RETURN 'Granted account-level lab privileges to 10 roles';
+END;
+$$;
+
+
+-- ==========================================================================
+-- Snowflake CoWork object
+--
+-- This account HAS a CoWork object, which means CoWork shows a curated list:
+-- an agent is only visible there if it has been explicitly added. Without
+-- this object, CoWork would show every agent a user can access.
+--
+-- Section 6 has each user register their own agent, so they need MODIFY.
+-- MODIFY is account-wide on this single shared object, but adding and
+-- removing agents is still gated by USAGE on the agent itself -- verified:
+-- a user cannot add or drop another user's agent, and SHOW AGENTS only
+-- lists agents they can access.
+--
+-- CAVEAT: MODIFY also permits changing shared CoWork branding (display name,
+-- welcome message, theme). Verified that a HOL role can do this. It affects
+-- every user in the account. Acceptable for a facilitated lab; do not grant
+-- MODIFY this way in a shared production account.
+-- ==========================================================================
+
+CREATE SNOWFLAKE INTELLIGENCE IF NOT EXISTS SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;
+
+GRANT USAGE ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT
+  TO ROLE PUBLIC;
+
+EXECUTE IMMEDIATE $$
+DECLARE
+  i INT DEFAULT 1;
+  r VARCHAR;
+BEGIN
+  WHILE (i <= 10) DO
+    r := 'HOL_USER_' || LPAD(i::VARCHAR, 2, '0') || '_ROLE';
+    EXECUTE IMMEDIATE 'GRANT MODIFY ON SNOWFLAKE INTELLIGENCE '
+                      || 'SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE ' || r;
+    EXECUTE IMMEDIATE 'GRANT USAGE ON SNOWFLAKE INTELLIGENCE '
+                      || 'SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE ' || r;
+    i := i + 1;
+  END WHILE;
+  RETURN 'Granted CoWork MODIFY + USAGE to 10 roles';
+END;
+$$;
+
+
 -- Verify setup
 SELECT 'Setup complete. All 10 users provisioned.' AS status;

@@ -610,6 +610,7 @@ href="06_cortex_analyst_cowork.sql">06_cortex_analyst_cowork.sql</a> and
 data</li>
 <li>Create a Cortex Agent <strong>declaratively in SQL</strong>
 (<code>CREATE AGENT</code>) with two tools</li>
+<li>Register your agent so it appears in Snowflake CoWork</li>
 <li>Ask natural language questions in Snowflake CoWork -- no SQL
 needed</li>
 </ul>
@@ -634,12 +635,24 @@ hand</strong> -- the script:
 <li>creates your agent with
 <code>CREATE AGENT ... FROM SPECIFICATION</code></li>
 </ul></li>
-<li><strong>Chat with it:</strong> go to <strong>AI &amp; ML &gt;
-Snowflake Intelligence</strong> (CoWork) in the left sidebar. Your agent
-<strong>"Casino Analytics - User 08"</strong> is already there -- you
-created it in SQL, so there is nothing to configure.</li>
+<li><strong>Register the agent in CoWork.</strong> Creating an agent
+does <em>not</em> make it show up in CoWork by itself -- Step 6 of the
+script adds it to the account's CoWork list for you. That step is safe
+to re-run.</li>
+<li><strong>Chat with it:</strong> go to <a
+href="https://ai.snowflake.com">ai.snowflake.com</a> (or <strong>AI
+&amp; ML &gt; Agents</strong> in Snowsight) and pick <strong>"Casino
+Analytics - User 08"</strong>. If it is not listed, re-run Step 6 and
+refresh the page.</li>
 <li><strong>Start asking questions!</strong></li>
 </ol>
+<blockquote>
+<p><strong>Why the extra step?</strong> This account uses a <em>CoWork
+object</em>, which holds a curated list of the agents CoWork displays.
+When that object exists, an agent is only shown once it has been added
+to it. You can only add agents you own, so you will only ever see your
+own agent in the list.</p>
+</blockquote>
 <p><strong>Your agent has three tools, and picks between them
 automatically:</strong></p>
 <div class="table-wrap"><table>
@@ -872,6 +885,14 @@ fast.</td>
 <code>semantic_model.yaml</code> onto the stage
 (<code>LIST @GOLD.SEMANTIC_MODELS;</code>) and the semantic view was
 created successfully</td>
+</tr>
+<tr>
+<td><strong>My agent is not listed in CoWork</strong></td>
+<td>Creating an agent does not publish it. Re-run <strong>Step
+6</strong> of Section 6
+(<code>ALTER SNOWFLAKE INTELLIGENCE ... ADD AGENT</code>), then refresh
+<a href="https://ai.snowflake.com">ai.snowflake.com</a>. Confirm with
+<code>SHOW AGENTS IN SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;</code></td>
 </tr>
 <tr>
 <td>AI function errors</td>

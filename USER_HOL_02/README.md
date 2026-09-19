@@ -213,6 +213,7 @@ For each section below:
 **What you will learn:**
 - Create a semantic view from a YAML model that describes your gaming data
 - Create a Cortex Agent **declaratively in SQL** (`CREATE AGENT`) with two tools
+- Register your agent so it appears in Snowflake CoWork
 - Ask natural language questions in Snowflake CoWork -- no SQL needed
 
 **Business context:** Executives and managers should not need to write SQL. Cortex Analyst translates plain-English questions into SQL queries against your semantic model. CoWork provides the chat interface.
@@ -226,10 +227,19 @@ For each section below:
    - uses `COPY FILES` to pull `semantic_model.yaml` straight from your workspace
    - builds the semantic view with `SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML`
    - creates your agent with `CREATE AGENT ... FROM SPECIFICATION`
-4. **Chat with it:** go to **AI & ML > Snowflake Intelligence** (CoWork) in the
-   left sidebar. Your agent **"Casino Analytics - User 02"** is already
-   there -- you created it in SQL, so there is nothing to configure.
-5. **Start asking questions!**
+4. **Register the agent in CoWork.** Creating an agent does *not* make it show
+   up in CoWork by itself -- Step 6 of the script adds it to the account's
+   CoWork list for you. That step is safe to re-run.
+5. **Chat with it:** go to [ai.snowflake.com](https://ai.snowflake.com) (or
+   **AI & ML > Agents** in Snowsight) and pick
+   **"Casino Analytics - User 02"**. If it is not listed, re-run
+   Step 6 and refresh the page.
+6. **Start asking questions!**
+
+> **Why the extra step?** This account uses a *CoWork object*, which holds a
+> curated list of the agents CoWork displays. When that object exists, an agent
+> is only shown once it has been added to it. You can only add agents you own,
+> so you will only ever see your own agent in the list.
 
 **Your agent has three tools, and picks between them automatically:**
 
@@ -367,6 +377,7 @@ run the script. It drops all your schemas and suspends your warehouse.
 | Dynamic Table not refreshing | Run `SHOW DYNAMIC TABLES IN DATABASE HOL_USER_02_DB;` and check the `SCHEDULING_STATE` column |
 | Cortex Search taking a long time | The first indexing takes 1-2 minutes. Subsequent queries are fast. |
 | CoWork not finding answers | Verify `COPY FILES` pulled `semantic_model.yaml` onto the stage (`LIST @GOLD.SEMANTIC_MODELS;`) and the semantic view was created successfully |
+| **My agent is not listed in CoWork** | Creating an agent does not publish it. Re-run **Step 6** of Section 6 (`ALTER SNOWFLAKE INTELLIGENCE ... ADD AGENT`), then refresh [ai.snowflake.com](https://ai.snowflake.com). Confirm with `SHOW AGENTS IN SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;` |
 | AI function errors | Ask your instructor to verify the `SNOWFLAKE.CORTEX_USER` database role is granted to `HOL_USER_02_ROLE` |
 | **An AI column comes back all NULL (no error)** | You are almost certainly using the wrong JSON accessor. These fail *silently* -- see the table below. |
 | Wrong results in queries | Check that you are in the right database: `SELECT CURRENT_DATABASE();` should show `HOL_USER_02_DB` |

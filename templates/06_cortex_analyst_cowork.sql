@@ -135,12 +135,46 @@ SHOW AGENTS IN SCHEMA GOLD;
 DESCRIBE AGENT GOLD.CASINO_ANALYST;
 
 -- ==========================================================================
--- Step 6: Chat with your agent in CoWork (Snowflake Intelligence)
+-- Step 6: Make the agent visible in Snowflake CoWork
 --
--- 1. In Snowsight, click "AI & ML" > "Snowflake Intelligence" (CoWork)
--- 2. Your agent "Casino Analytics - User {{USER_NUM}}" is already there --
---    you created it in Step 5, so there is nothing to configure.
--- 3. Select it and start asking questions.
+-- Creating an agent does NOT automatically show it in CoWork.
+--
+-- This account has a "Snowflake CoWork object" -- an account-level object
+-- that holds a curated list of the agents CoWork displays. When that object
+-- exists, an agent is only listed if it has been explicitly added to it.
+-- (Without the object, CoWork would just show every agent you can access.)
+--
+-- Your role has been granted MODIFY on that object, so you can register your
+-- own agent yourself. You can only add agents you have USAGE on, so you
+-- cannot see or touch another user's agent.
+--
+-- This block is safe to re-run: if your agent is already registered it
+-- reports that instead of failing.
+-- ==========================================================================
+
+EXECUTE IMMEDIATE $$
+BEGIN
+  ALTER SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT
+    ADD AGENT HOL_USER_{{USER_NUM}}_DB.GOLD.CASINO_ANALYST;
+  RETURN 'Agent registered in CoWork. Open ai.snowflake.com and refresh.';
+EXCEPTION
+  WHEN OTHER THEN
+    RETURN 'Not added -- ' || SQLERRM ||
+           '   ("already present" means you are already set up.)';
+END;
+$$;
+
+-- Confirm your agent is in the CoWork list. You will only see agents you
+-- have access to, so expect just your own.
+SHOW AGENTS IN SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;
+
+-- ==========================================================================
+-- Step 7: Chat with your agent in CoWork (Snowflake Intelligence)
+--
+-- 1. Go to https://ai.snowflake.com (or in Snowsight, "AI & ML" > "Agents")
+-- 2. Select "Casino Analytics - User {{USER_NUM}}" from the agent list.
+--    If you do not see it, re-run Step 6 and refresh the page.
+-- 3. Start asking questions.
 --
 -- Because the agent has BOTH an Analyst tool and a Search tool, it can
 -- answer numeric questions AND questions about guest opinions, and it
